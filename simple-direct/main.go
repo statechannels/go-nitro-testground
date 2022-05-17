@@ -39,10 +39,10 @@ type PeerTransaction struct {
 const PORT_START = 7000
 
 func main() {
-	run.Invoke(runf)
+	run.Invoke(twoPeerTest)
 }
 
-func runf(runenv *runtime.RunEnv) error {
+func twoPeerTest(runenv *runtime.RunEnv) error {
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
 	client := sync.MustBoundClient(ctx, runenv)
