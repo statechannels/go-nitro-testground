@@ -54,7 +54,6 @@ func twoPeerTest(runenv *runtime.RunEnv) error {
 
 	// wait for the network to initialize; this should be pretty fast.
 	netclient.MustWaitNetworkInitialized(ctx)
-	runenv.RecordMessage("network initilization complete")
 
 	peerInfoTopic := sync.NewTopic("peer-info", &PeerEntry{})
 	transTopic := sync.NewTopic("chain-transaction", &PeerTransaction{})
@@ -72,8 +71,11 @@ func twoPeerTest(runenv *runtime.RunEnv) error {
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount-1).C
 	peers := getPeers(ctx, client, peerInfoTopic, runenv)
 	nitroClient, ms, chain := setupClient(seq, myKey, myUrl, peers)
+	runenv.RecordMessage("nitro client created")
+
 	shareTransactions(runenv, ctx, client, transTopic, chain, myAddress)
 	handleTransactions(runenv, ctx, client, transTopic, chain, myAddress)
+
 	defer ms.Close()
 
 	client.MustSignalEntry(ctx, "clientReady")
@@ -82,20 +84,20 @@ func twoPeerTest(runenv *runtime.RunEnv) error {
 	// We only want one participant to create the channel for now
 	if seq == 1 {
 		counterparty := selectAPeer(peers, myAddress)
-		createDirectChannel(myAddress, counterparty, nitroClient)
+		createDirectChannel(runenv, myAddress, counterparty, nitroClient)
 
 	}
 
 	// TODO: Make sure the objective ids are correct
 	comp := <-nitroClient.CompletedObjectives()
-	runenv.RecordMessage("Completed objectives: %+v", comp)
+	runenv.RecordMessage("Completed objective %s", comp)
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount-1).C
 	return nil
 }
 
-func createDirectChannel(myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) {
+func createDirectChannel(runenv *runtime.RunEnv, myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
@@ -117,7 +119,8 @@ func createDirectChannel(myAddress types.Address, counterparty types.Address, ni
 		ChallengeDuration: big.NewInt(0),
 		Nonce:             rand.Int63(),
 	}
-	nitroClient.CreateDirectChannel(request)
+	r := nitroClient.CreateDirectChannel(request)
+	runenv.RecordMessage("channel %s created", r.ChannelId)
 
 }
 
