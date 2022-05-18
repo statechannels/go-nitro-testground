@@ -150,7 +150,7 @@ func selectRandomPeer(peers map[types.Address]PeerEntry, myAddress types.Address
 			peersWithoutMe = append(peersWithoutMe, p.Address)
 		}
 	}
-	fmt.Printf("peersWithoutMe: %v\n", len(peersWithoutMe))
+
 	randomIndex := rand.Intn(len(peersWithoutMe))
 
 	return peersWithoutMe[randomIndex]
