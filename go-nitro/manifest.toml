@@ -1,4 +1,4 @@
-name = "two-peer"
+name = "go-nitro"
 [defaults]
 builder = "exec:go"
 runner = "local:exec"
@@ -22,6 +22,6 @@ enabled = true
 enabled = true
 
 [[testcases]]
-name= "two-peer"
+name= "create-ledgers"
 instances = { min = 2, max = 2, default = 2 }
 
