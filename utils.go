@@ -118,7 +118,7 @@ func getAddressFromSecretKey(secretKey ecdsa.PrivateKey) types.Address {
 	return crypto.PubkeyToAddress(*publicKeyECDSA)
 }
 
-func createDirectChannel(runenv *runtime.RunEnv, myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) {
+func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{

@@ -72,7 +72,7 @@ func twoPeerTest(runenv *runtime.RunEnv) error {
 	// We only want one participant to create the channel for now
 	if seq == 1 {
 		counterparty := selectAPeer(peers, myAddress)
-		createDirectChannel(runenv, myAddress, counterparty, nitroClient)
+		createLedgerChannel(runenv, myAddress, counterparty, nitroClient)
 
 	}
 
