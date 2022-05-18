@@ -25,7 +25,9 @@ type PeerTransaction struct {
 const PORT_START = 7000
 
 func main() {
-	run.Invoke(createLedgerTest)
+	run.InvokeMap(map[string]interface{}{
+		"create-ledgers": createLedgerTest,
+	})
 }
 
 func createLedgerTest(runenv *runtime.RunEnv) error {
