@@ -31,8 +31,8 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	myUrl := generateMyUrl(netclient, seq)
 	myAddress, myKey := generateRandomAddress()
 
-	// Only one client will play the role as a hub for now
-	isHub := seq == 1
+	numOfHubs := int64(runenv.IntParam("numOfHubs"))
+	isHub := seq <= numOfHubs
 
 	// Publish my entry
 	client.Publish(ctx, peerInfoTopic, &PeerEntry{myAddress, myUrl, isHub})
@@ -69,7 +69,7 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	// The other peers will have one channel with the channel creator
 	expectedCompleted := 1
 	if isHub {
-		expectedCompleted = runenv.TestInstanceCount - 1
+		expectedCompleted = runenv.TestInstanceCount - int(numOfHubs)
 	}
 
 	for i := 0; i < expectedCompleted; i++ {
