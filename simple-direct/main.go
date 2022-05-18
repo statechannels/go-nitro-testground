@@ -70,10 +70,12 @@ func twoPeerTest(runenv *runtime.RunEnv) error {
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount-1).C
 	peers := getPeers(ctx, client, peerInfoTopic, runenv)
-	nitroClient, ms, chain := setupClient(seq, myKey, myUrl, peers)
+
+	transListener := make(chan protocols.ChainTransaction, 10)
+	nitroClient, ms, chain := setupClient(seq, myKey, myUrl, peers, transListener)
 	runenv.RecordMessage("nitro client created")
 
-	shareTransactions(runenv, ctx, client, transTopic, chain, myAddress)
+	shareTransactions(transListener, runenv, ctx, client, transTopic, chain, myAddress)
 	handleTransactions(runenv, ctx, client, transTopic, chain, myAddress)
 
 	defer ms.Close()
@@ -155,10 +157,10 @@ func generateRandomAddress() (types.Address, *ecdsa.PrivateKey) {
 	return myAddress, sk
 }
 
-func shareTransactions(runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
+func shareTransactions(listener chan protocols.ChainTransaction, runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
 	// TODO: Close this gracefully?
 	go func() {
-		for trans := range chain.TransactionReceived() {
+		for trans := range listener {
 
 			_, err := client.Publish(ctx, topic, &PeerTransaction{From: myAddress, Transaction: trans})
 			if err != nil {
@@ -184,12 +186,12 @@ func handleTransactions(runenv *runtime.RunEnv, ctx context.Context, client *syn
 	}()
 }
 
-func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[types.Address]string) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService, *chainservice.MockChain) {
+func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[types.Address]string, transListener chan protocols.ChainTransaction) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService, *chainservice.MockChain) {
 
 	store := store.NewMemStore(crypto.FromECDSA(myKey))
 	myAddress := getAddressFromSecretKey(*myKey)
 	ms := simpletcp.NewSimpleTCPMessageService(myUrl, peers)
-	chain := chainservice.NewMockChain()
+	chain := chainservice.NewMockChainWithTransactionListener(transListener)
 	chain.Subscribe(myAddress)
 	chainservice := chainservice.NewSimpleChainService(&chain, myAddress)
 	// TODO: Figure out good place to log this
