@@ -54,7 +54,8 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	client.Publish(ctx, peerInfoTopic, &PeerEntry{myAddress, myUrl})
 
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
-	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount-1).C
+	peerCount := runenv.TestInstanceCount - 1
+	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), peerCount).C
 	peers := getPeers(ctx, client, peerInfoTopic, runenv)
 
 	transListener := make(chan protocols.ChainTransaction, 10)
@@ -67,18 +68,32 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	defer ms.Close()
 
 	client.MustSignalEntry(ctx, "clientReady")
-	<-client.MustBarrier(ctx, sync.State("clientReady"), runenv.TestInstanceCount-1).C
+	<-client.MustBarrier(ctx, sync.State("clientReady"), peerCount).C
 
-	// We only want one participant to create the channel for now
-	if seq == 1 {
-		counterparty := selectRandomPeer(peers, myAddress)
-		createLedgerChannel(runenv, myAddress, counterparty, nitroClient)
+	// We can only have one direct channel with a peer, so we only allow one client to create channels
+	isChannelCreator := seq == 1
+
+	if isChannelCreator {
+		for p := range peers {
+			if p != myAddress {
+				createLedgerChannel(runenv, myAddress, p, nitroClient)
+			}
+		}
 
 	}
 
-	// TODO: Make sure the objective ids are correct
-	comp := <-nitroClient.CompletedObjectives()
-	runenv.RecordMessage("Completed objective %s", comp)
+	// The channel creator will have channels with every peer
+	// The other peers will have one channel with the channel creator
+	expectedCompleted := 1
+	if isChannelCreator {
+		expectedCompleted = peerCount
+	}
+
+	for i := 0; i < expectedCompleted; i++ {
+		// TODO: Make sure the objective ids are correct
+		c := <-nitroClient.CompletedObjectives()
+		runenv.RecordMessage("objective completed %v", c)
+	}
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount-1).C

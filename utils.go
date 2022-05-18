@@ -24,20 +24,6 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func selectRandomPeer(peers map[types.Address]string, myAddress types.Address) types.Address {
-
-	peersWithoutMe := make([]types.Address, 0)
-	for p := range peers {
-		if myAddress != p {
-			peersWithoutMe = append(peersWithoutMe, p)
-		}
-	}
-	randomIndex := rand.Intn(len(peersWithoutMe))
-
-	return peersWithoutMe[randomIndex]
-
-}
-
 func getPeers(ctx context.Context, client sync.Client, peerTopic *sync.Topic, runenv *runtime.RunEnv) map[types.Address]string {
 	peers := map[types.Address]string{}
 	peerChannel := make(chan *PeerEntry)
@@ -66,7 +52,8 @@ func shareTransactions(listener chan protocols.ChainTransaction, runenv *runtime
 
 			_, err := client.Publish(ctx, topic, &PeerTransaction{From: myAddress, Transaction: trans})
 			if err != nil {
-				panic(err)
+				// TODO: This gofunc should get aborted instead of just swallowing an error
+				return
 			}
 		}
 	}()

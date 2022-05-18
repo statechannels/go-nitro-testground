@@ -23,5 +23,5 @@ enabled = true
 
 [[testcases]]
 name= "create-ledgers"
-instances = { min = 2, max = 2, default = 2 }
+instances = { min = 2, max = 100, default = 5 }
 
