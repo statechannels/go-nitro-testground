@@ -24,13 +24,17 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func selectAPeer(peers map[types.Address]string, myAddress types.Address) types.Address {
-	for peer := range peers {
-		if peer != myAddress {
-			return peer
+func selectRandomPeer(peers map[types.Address]string, myAddress types.Address) types.Address {
+
+	peersWithoutMe := make([]types.Address, 0)
+	for p := range peers {
+		if myAddress != p {
+			peersWithoutMe = append(peersWithoutMe, p)
 		}
 	}
-	panic("couldn't find a peer")
+	randomIndex := rand.Intn(len(peersWithoutMe))
+
+	return peersWithoutMe[randomIndex]
 
 }
 

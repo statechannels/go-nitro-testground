@@ -71,7 +71,7 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 
 	// We only want one participant to create the channel for now
 	if seq == 1 {
-		counterparty := selectAPeer(peers, myAddress)
+		counterparty := selectRandomPeer(peers, myAddress)
 		createLedgerChannel(runenv, myAddress, counterparty, nitroClient)
 
 	}
