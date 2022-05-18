@@ -25,3 +25,10 @@ enabled = true
 name= "create-ledgers"
 instances = { min = 2, max = 100, default = 5 }
 
+
+[[testcases]]
+name= "create-virtual"
+instances = { min = 2, max = 100, default = 5 }
+
+    [testcases.params]
+    numOfChannels =  { type = "int", default = 2 } 

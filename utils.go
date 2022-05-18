@@ -18,20 +18,21 @@ import (
 	"github.com/statechannels/go-nitro/client/engine/store"
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/directfund"
+	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
 
-func getPeers(ctx context.Context, client sync.Client, peerTopic *sync.Topic, runenv *runtime.RunEnv) map[types.Address]string {
-	peers := map[types.Address]string{}
+func getPeers(ctx context.Context, client sync.Client, peerTopic *sync.Topic, runenv *runtime.RunEnv) map[types.Address]PeerEntry {
+	peers := map[types.Address]PeerEntry{}
 	peerChannel := make(chan *PeerEntry)
 	client.Subscribe(ctx, peerTopic, peerChannel)
 
-	for i := 0; i < runenv.TestInstanceCount; i++ {
+	for i := 0; i <= runenv.TestInstanceCount-1; i++ {
 		t := <-peerChannel
-		peers[t.Address] = t.Url
+		peers[t.Address] = *t
 	}
 	return peers
 }
@@ -75,11 +76,16 @@ func handleTransactions(runenv *runtime.RunEnv, ctx context.Context, client *syn
 	}()
 }
 
-func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[types.Address]string, transListener chan protocols.ChainTransaction) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService, *chainservice.MockChain) {
+func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[types.Address]PeerEntry, transListener chan protocols.ChainTransaction) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService, *chainservice.MockChain) {
 
 	store := store.NewMemStore(crypto.FromECDSA(myKey))
 	myAddress := getAddressFromSecretKey(*myKey)
-	ms := simpletcp.NewSimpleTCPMessageService(myUrl, peers)
+	peerUrlMap := make(map[types.Address]string)
+	for _, p := range peers {
+		peerUrlMap[p.Address] = p.Url
+	}
+
+	ms := simpletcp.NewSimpleTCPMessageService(myUrl, peerUrlMap)
 	chain := chainservice.NewMockChainWithTransactionListener(transListener)
 	chain.Subscribe(myAddress)
 	chainservice := chainservice.NewSimpleChainService(&chain, myAddress)
@@ -114,11 +120,11 @@ func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counte
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
 				Destination: types.AddressToDestination(myAddress),
-				Amount:      big.NewInt(1),
+				Amount:      big.NewInt(1000),
 			},
 			outcome.Allocation{
 				Destination: types.AddressToDestination(counterparty),
-				Amount:      big.NewInt(1),
+				Amount:      big.NewInt(1000),
 			},
 		},
 	}}
@@ -133,5 +139,48 @@ func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counte
 	}
 	r := nitroClient.CreateDirectChannel(request)
 	runenv.RecordMessage("channel %s created", r.ChannelId)
+
+}
+
+func selectRandomPeer(peers map[types.Address]PeerEntry, myAddress types.Address, shouldBeHub bool) types.Address {
+
+	peersWithoutMe := make([]types.Address, 0)
+	for _, p := range peers {
+		if myAddress != p.Address && p.IsHub == shouldBeHub {
+			peersWithoutMe = append(peersWithoutMe, p.Address)
+		}
+	}
+	fmt.Printf("peersWithoutMe: %v\n", len(peersWithoutMe))
+	randomIndex := rand.Intn(len(peersWithoutMe))
+
+	return peersWithoutMe[randomIndex]
+
+}
+
+func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) {
+	outcome := outcome.Exit{outcome.SingleAssetExit{
+		Allocations: outcome.Allocations{
+			outcome.Allocation{
+				Destination: types.AddressToDestination(myAddress),
+				Amount:      big.NewInt(1),
+			},
+			outcome.Allocation{
+				Destination: types.AddressToDestination(counterparty),
+				Amount:      big.NewInt(1),
+			},
+		},
+	}}
+
+	request := virtualfund.ObjectiveRequest{
+		CounterParty:      counterparty,
+		Intermediary:      intermediary,
+		Outcome:           outcome,
+		AppDefinition:     types.Address{},
+		AppData:           types.Bytes{},
+		ChallengeDuration: big.NewInt(0),
+		Nonce:             rand.Int63(),
+	}
+	r := nitroClient.CreateVirtualChannel(request)
+	runenv.RecordMessage("virtual channel creation started %s", r.ChannelId)
 
 }
