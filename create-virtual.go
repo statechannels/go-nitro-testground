@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"time"
 
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
@@ -22,11 +21,12 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	// wait for the network to initialize; this should be pretty fast.
 	netclient.MustWaitNetworkInitialized(ctx)
 
-	// signal entry in the 'init' state, and obtain a sequence number.
+	// signal entry in the 'init' state, and obtain a unique sequence number.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 	numOfHubs := int64(runenv.IntParam("numOfHubs"))
 
 	me, myKey := generateMe(seq, netclient, numOfHubs)
+
 	runenv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address and broadcasted it.
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
@@ -43,6 +43,7 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	client.MustSignalEntry(ctx, "clientReady")
 	<-client.MustBarrier(ctx, sync.State("clientReady"), runenv.TestInstanceCount).C
 
+	// Setup ledger channels so all peers have a channel with every hub.
 	if !me.IsHub {
 		ledgerCm := NewCompletionMonitor(nitroClient, *runenv)
 		for _, p := range peers {
@@ -55,12 +56,15 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 		}
 		ledgerCm.WaitForObjectivesToComplete()
 	}
+	runenv.RecordMessage("All ledger channel objectives completed")
+
 	client.MustSignalEntry(ctx, sync.State("ledgerDone"))
 	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runenv.TestInstanceCount).C
-	runenv.RecordMessage("All ledger channel objectives completed")
+
+	// If we're not the hub we create numOfChannels with a random peer/hub.
+	numOfChannels := runenv.IntParam("numOfChannels")
 	cm := NewCompletionMonitor(nitroClient, *runenv)
 	if !me.IsHub {
-		numOfChannels := runenv.IntParam("numOfChannels")
 
 		for i := 0; i < numOfChannels; i++ {
 
@@ -73,12 +77,13 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	}
 	cm.WaitForObjectivesToComplete()
 	runenv.RecordMessage("All virtual channel objectives completed")
+
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C
 
 	// TODO: We sleep a second to make sure messages are flushed
 	// There's probably a more elegant solution
-	time.Sleep(time.Second)
+	// time.Sleep(time.Second)
 	ms.Close()
 
 	return nil
