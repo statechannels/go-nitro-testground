@@ -28,30 +28,30 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	me, myKey := generateMe(seq, netclient, numOfHubs)
 
 	runenv.RecordMessage("I am %+v", me)
-	// We wait until everyone has chosen an address and broadcasted it.
-	client.MustSignalEntry(ctx, "readyForPeerInfo")
-	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount).C
+	// We wait until everyone has chosen an address.
+	client.MustSignalEntry(ctx, "peerInfoGenerated")
+	<-client.MustBarrier(ctx, sync.State("peerInfoGenerated"), runenv.TestInstanceCount).C
 
-	// Read all our peers from the sync.Topic
+	// Broadcasts our info and get peer info from all other instances.
 	peers := getPeers(me, ctx, client, runenv)
-
+	// Set up our mock chain that communicates with our instances using a sync.Topic
 	chain := setupChain(me, runenv, ctx, client)
 
 	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
 	defer ms.Close()
-
 	runenv.RecordMessage("nitro client created")
 
+	// We wait until every instance has successfully created their client
 	client.MustSignalEntry(ctx, "clientReady")
 	<-client.MustBarrier(ctx, sync.State("clientReady"), runenv.TestInstanceCount).C
 
-	// Setup ledger channels so all peers have a channel with every hub.
 	if !me.IsHub {
 		// Create ledger channels between me and any hubs.
 		createLedgerChannels(me, runenv, nitroClient, filterPeers(peers, me.Address, true))
 	}
 	runenv.RecordMessage("All ledger channel objectives completed")
 
+	// We wait until every instance has finished up with ledger channel creation
 	client.MustSignalEntry(ctx, sync.State("ledgerDone"))
 	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runenv.TestInstanceCount).C
 
