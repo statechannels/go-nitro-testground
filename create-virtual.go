@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"time"
 
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
@@ -39,6 +38,7 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	chain := setupChain(me, runenv, ctx, client)
 
 	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
+	defer ms.Close()
 
 	runenv.RecordMessage("nitro client created")
 
@@ -73,9 +73,6 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C
-	// TODO: We sleep a second to make sure messages are flushed
-	// There's probably a more elegant solution
-	time.Sleep(time.Second)
-	ms.Close()
+
 	return nil
 }
