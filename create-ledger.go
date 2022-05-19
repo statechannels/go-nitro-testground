@@ -53,28 +53,21 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 
 	// We can only have one direct channel with a peer, so we only allow one client to create channels
 	isChannelCreator := seq == 1
-
+	cm := NewCompletionMonitor(nitroClient)
 	if isChannelCreator {
 		for p := range peers {
 
-			createLedgerChannel(runenv, myAddress, p, nitroClient)
+			id := createLedgerChannel(runenv, myAddress, p, nitroClient)
+			cm.Add(id)
 
 		}
 
 	}
 
-	// The channel creator will have channels with every peer
-	// The other peers will have one channel with the channel creator
-	expectedCompleted := 1
-	if isChannelCreator {
-		expectedCompleted = runenv.TestInstanceCount - 1
+	if !cm.AllDone() {
+		cm.Wait()
 	}
-
-	for i := 0; i < expectedCompleted; i++ {
-		// TODO: Make sure the objective ids are correct
-		c := <-nitroClient.CompletedObjectives()
-		runenv.RecordMessage("objective completed %v", c)
-	}
+	cm.Stop()
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C

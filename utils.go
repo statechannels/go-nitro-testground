@@ -115,7 +115,7 @@ func getAddressFromSecretKey(secretKey ecdsa.PrivateKey) types.Address {
 	return crypto.PubkeyToAddress(*publicKeyECDSA)
 }
 
-func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) {
+func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
@@ -139,25 +139,31 @@ func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counte
 	}
 	r := nitroClient.CreateDirectChannel(request)
 	runenv.RecordMessage("channel %s created", r.ChannelId)
+	return r.Id
 
 }
 
 func selectRandomPeer(peers map[types.Address]PeerEntry, myAddress types.Address, shouldBeHub bool) types.Address {
 
-	peersWithoutMe := make([]types.Address, 0)
-	for _, p := range peers {
-		if myAddress != p.Address && p.IsHub == shouldBeHub {
-			peersWithoutMe = append(peersWithoutMe, p.Address)
-		}
-	}
+	filtered := filterPeers(peers, myAddress, shouldBeHub)
 
-	randomIndex := rand.Intn(len(peersWithoutMe))
+	randomIndex := rand.Intn(len(filtered))
 
-	return peersWithoutMe[randomIndex]
+	return filtered[randomIndex].Address
 
 }
 
-func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) {
+func filterPeers(peers map[types.Address]PeerEntry, myAddress types.Address, shouldBeHub bool) []PeerEntry {
+	filteredPeers := make([]PeerEntry, 0)
+	for _, p := range peers {
+		if p.Address != myAddress && p.IsHub == shouldBeHub {
+			filteredPeers = append(filteredPeers, p)
+		}
+	}
+	return filteredPeers
+}
+
+func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
@@ -182,5 +188,6 @@ func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, inter
 	}
 	r := nitroClient.CreateVirtualChannel(request)
 	runenv.RecordMessage("virtual channel creation started %s", r.ChannelId)
+	return r.Id
 
 }

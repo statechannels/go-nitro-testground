@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/testground/sdk-go/network"
@@ -50,54 +51,50 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	shareTransactions(transListener, runenv, ctx, client, transTopic, chain, myAddress)
 	handleTransactions(runenv, ctx, client, transTopic, chain, myAddress)
 
-	defer ms.Close()
-
 	client.MustSignalEntry(ctx, "clientReady")
 	<-client.MustBarrier(ctx, sync.State("clientReady"), runenv.TestInstanceCount).C
 
 	if !isHub {
+		ledgerCm := NewCompletionMonitor(nitroClient)
 		for _, p := range peers {
 			if p.Address != myAddress && p.IsHub {
-				createLedgerChannel(runenv, myAddress, p.Address, nitroClient)
+				id := createLedgerChannel(runenv, myAddress, p.Address, nitroClient)
+				ledgerCm.Add(id)
 				runenv.RecordMessage("created channel with hub")
 			}
 		}
+		if !ledgerCm.AllDone() {
+			ledgerCm.Wait()
+		}
 
-	}
-
-	// The channel creator will have channels with every peer
-	// The other peers will have one channel with the channel creator
-	expectedCompleted := 1
-	if isHub {
-		expectedCompleted = runenv.TestInstanceCount - int(numOfHubs)
-	}
-
-	for i := 0; i < expectedCompleted; i++ {
-		// TODO: Make sure the objective ids are correct
-		c := <-nitroClient.CompletedObjectives()
-		runenv.RecordMessage("ledger objective completed %v", c)
+		ledgerCm.Stop()
 	}
 
 	client.MustSignalEntry(ctx, sync.State("ledgerDone"))
 	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runenv.TestInstanceCount).C
-
-	numOfChannels := runenv.IntParam("numOfChannels")
+	cm := NewCompletionMonitor(nitroClient)
 	if !isHub {
+		numOfChannels := runenv.IntParam("numOfChannels")
+
 		for i := 0; i < numOfChannels; i++ {
+
 			hubToUse := selectRandomPeer(peers, myAddress, true)
 			peer := selectRandomPeer(peers, myAddress, false)
-			createVirtualChannel(runenv, myAddress, hubToUse, peer, nitroClient)
+			id := createVirtualChannel(runenv, myAddress, hubToUse, peer, nitroClient)
+			cm.Add(id)
 		}
 
-		for i := 0; i < numOfChannels; i++ {
-			// TODO: Make sure the objective ids are correct
-			c := <-nitroClient.CompletedObjectives()
-			runenv.RecordMessage("virtual objective completed %v", c)
-		}
 	}
-
+	if !cm.AllDone() {
+		cm.Wait()
+	}
+	cm.Stop()
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C
+	// TODO: We sleep a second to make sure messages are flushed
+	// There's probably a more elegant solution
+	time.Sleep(time.Second)
+	ms.Close()
 
 	return nil
 }
