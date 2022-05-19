@@ -38,16 +38,18 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	// Publish my entry
 	client.Publish(ctx, peerInfoTopic, &PeerEntry{myAddress, myUrl, isHub})
 
+	// We wait until everyone has chosen an address and broadcasted it.
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount).C
 
+	// Read all our peers from the sync.Topic
 	peers := getPeers(ctx, client, peerInfoTopic, runenv)
+
 	runenv.RecordMessage("I am %+v", peers[myAddress])
 
-	transListener := make(chan protocols.ChainTransaction, 10)
-
+	transListener := make(chan protocols.ChainTransaction, 1000)
+	// Create the nitro client with our key
 	nitroClient, ms, chain := setupClient(seq, myKey, myUrl, peers, transListener)
-	
 	runenv.RecordMessage("nitro client created")
 
 	shareTransactions(transListener, runenv, ctx, client, transTopic, chain, myAddress)
@@ -61,9 +63,9 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 		for _, p := range peers {
 			if p.Address != myAddress && p.IsHub {
 				id := createLedgerChannel(runenv, myAddress, p.Address, nitroClient)
-				
+
 				ledgerCm.Add(id)
-				
+
 				runenv.RecordMessage("created channel with hub")
 			}
 		}
