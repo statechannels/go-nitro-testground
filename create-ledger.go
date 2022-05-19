@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 
-	"github.com/statechannels/go-nitro/protocols"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
@@ -22,8 +21,7 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	// wait for the network to initialize; this should be pretty fast.
 	netclient.MustWaitNetworkInitialized(ctx)
 
-	peerInfoTopic := sync.NewTopic("peer-info", &PeerEntry{})
-	transTopic := sync.NewTopic("chain-transaction", &PeerTransaction{})
+	peerInfoTopic := sync.NewTopic("peer-info", &PeerInfo{})
 
 	// signal entry in the 'init' state, and obtain a sequence number.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
@@ -32,19 +30,17 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	myAddress, myKey := generateRandomAddress()
 
 	// Publish my entry
-	client.Publish(ctx, peerInfoTopic, &PeerEntry{myAddress, myUrl, false})
+	client.Publish(ctx, peerInfoTopic, &PeerInfo{myAddress, myUrl, false})
 
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount).C
 
 	peers := getPeers(ctx, client, peerInfoTopic, runenv)
 
-	transListener := make(chan protocols.ChainTransaction, 10)
-	nitroClient, ms, chain := setupClient(seq, myKey, myUrl, peers, transListener)
-	runenv.RecordMessage("nitro client created")
+	chain := setupChain(runenv, ctx, client, myAddress)
 
-	shareTransactions(transListener, runenv, ctx, client, transTopic, chain, myAddress)
-	handleTransactions(runenv, ctx, client, transTopic, chain, myAddress)
+	nitroClient, ms := createNitroClient(seq, myKey, myUrl, peers, chain)
+	runenv.RecordMessage("nitro client created")
 
 	defer ms.Close()
 

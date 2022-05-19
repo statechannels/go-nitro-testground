@@ -8,17 +8,21 @@ import (
 	"github.com/testground/sdk-go/run"
 )
 
-type PeerEntry struct {
+// PeerInfo contains information about a peer.
+type PeerInfo struct {
 	Address types.Address
 	Url     string
 	IsHub   bool
 }
 
+// PeerTransaction is a a transaction that also indicates which peer sent it.
+// This is used to replay a transaction on our local chain instance
 type PeerTransaction struct {
 	Transaction protocols.ChainTransaction
 	From        types.Address
 }
 
+// The first TCP port for the range of ports used by clients' messaging services.
 const PORT_START = 7000
 
 func main() {

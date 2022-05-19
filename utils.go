@@ -25,9 +25,9 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func getPeers(ctx context.Context, client sync.Client, peerTopic *sync.Topic, runenv *runtime.RunEnv) map[types.Address]PeerEntry {
-	peers := map[types.Address]PeerEntry{}
-	peerChannel := make(chan *PeerEntry)
+func getPeers(ctx context.Context, client sync.Client, peerTopic *sync.Topic, runenv *runtime.RunEnv) map[types.Address]PeerInfo {
+	peers := map[types.Address]PeerInfo{}
+	peerChannel := make(chan *PeerInfo)
 	client.Subscribe(ctx, peerTopic, peerChannel)
 
 	for i := 0; i <= runenv.TestInstanceCount-1; i++ {
@@ -60,7 +60,8 @@ func shareTransactions(listener chan protocols.ChainTransaction, runenv *runtime
 	}()
 }
 
-func handleTransactions(runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
+// replayTransactions listens for transactions that occured on other client's chains and replays them on ours
+func replayTransactions(runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
 	// TODO: Close this gracefully?
 	go func() {
 		peerTransactions := make(chan *PeerTransaction)
@@ -76,7 +77,21 @@ func handleTransactions(runenv *runtime.RunEnv, ctx context.Context, client *syn
 	}()
 }
 
-func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[types.Address]PeerEntry, transListener chan protocols.ChainTransaction) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService, *chainservice.MockChain) {
+// setupChain creates a mock chain instance and will share transactions with other MockChains using a sync.Topic
+func setupChain(runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, myAddress types.Address) *chainservice.MockChain {
+
+	transListener := make(chan protocols.ChainTransaction, 1000)
+
+	chain := chainservice.NewMockChainWithTransactionListener(transListener)
+	transTopic := sync.NewTopic("chain-transaction", &PeerTransaction{})
+	go shareTransactions(transListener, runenv, ctx, client, transTopic, &chain, myAddress)
+	go replayTransactions(runenv, ctx, client, transTopic, &chain, myAddress)
+
+	return &chain
+}
+
+// createNitroClient starts a nitro client using the given unique sequence number and private key.
+func createNitroClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[types.Address]PeerInfo, chain *chainservice.MockChain) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService) {
 
 	store := store.NewMemStore(crypto.FromECDSA(myKey))
 	myAddress := getAddressFromSecretKey(*myKey)
@@ -87,16 +102,13 @@ func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[typ
 
 	ms := simpletcp.NewSimpleTCPMessageService(myUrl, peerUrlMap)
 
-	chain := chainservice.NewMockChainWithTransactionListener(transListener)
-
-	chain.Subscribe(myAddress)
-	chainservice := chainservice.NewSimpleChainService(&chain, myAddress)
+	chainservice := chainservice.NewSimpleChainService(chain, myAddress)
 	// TODO: Figure out good place to log this
 	filename := filepath.Join("../artifacts", fmt.Sprintf("testground-%d.log", seq))
 	logDestination, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
 
 	client := nitroclient.New(ms, chainservice, store, logDestination)
-	return &client, ms, &chain
+	return &client, ms
 
 }
 
@@ -145,7 +157,7 @@ func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counte
 
 }
 
-func selectRandomPeer(peers map[types.Address]PeerEntry, myAddress types.Address, shouldBeHub bool) types.Address {
+func selectRandomPeer(peers map[types.Address]PeerInfo, myAddress types.Address, shouldBeHub bool) types.Address {
 
 	filtered := filterPeers(peers, myAddress, shouldBeHub)
 
@@ -155,8 +167,8 @@ func selectRandomPeer(peers map[types.Address]PeerEntry, myAddress types.Address
 
 }
 
-func filterPeers(peers map[types.Address]PeerEntry, myAddress types.Address, shouldBeHub bool) []PeerEntry {
-	filteredPeers := make([]PeerEntry, 0)
+func filterPeers(peers map[types.Address]PeerInfo, myAddress types.Address, shouldBeHub bool) []PeerInfo {
+	filteredPeers := make([]PeerInfo, 0)
 	for _, p := range peers {
 		if p.Address != myAddress && p.IsHub == shouldBeHub {
 			filteredPeers = append(filteredPeers, p)
