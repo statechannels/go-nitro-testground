@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
@@ -38,6 +39,7 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	chain := setupChain(me, runenv, ctx, client)
 
 	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
+
 	runenv.RecordMessage("nitro client created")
 
 	client.MustSignalEntry(ctx, "clientReady")
@@ -45,16 +47,8 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 
 	// Setup ledger channels so all peers have a channel with every hub.
 	if !me.IsHub {
-		ledgerCm := NewCompletionMonitor(nitroClient, *runenv)
-		for _, p := range peers {
-			if p.Address != me.Address && p.IsHub {
-				id := createLedgerChannel(runenv, me.Address, p.Address, nitroClient)
-
-				ledgerCm.WatchObjective(id)
-
-			}
-		}
-		ledgerCm.WaitForObjectivesToComplete()
+		// Create ledger channels between me and any hubs.
+		createLedgerChannels(me, runenv, nitroClient, filterPeers(peers, me.Address, true))
 	}
 	runenv.RecordMessage("All ledger channel objectives completed")
 
@@ -65,7 +59,6 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	numOfChannels := runenv.IntParam("numOfChannels")
 	cm := NewCompletionMonitor(nitroClient, *runenv)
 	if !me.IsHub {
-
 		for i := 0; i < numOfChannels; i++ {
 
 			hubToUse := selectRandomPeer(peers, me.Address, true)
@@ -80,11 +73,9 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C
-
 	// TODO: We sleep a second to make sure messages are flushed
 	// There's probably a more elegant solution
-	// time.Sleep(time.Second)
+	time.Sleep(time.Second)
 	ms.Close()
-
 	return nil
 }
