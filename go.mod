@@ -1,4 +1,4 @@
-module github.com/statechannels/go-nitro-test-plans
+module github.com/statechannels/go-nitro-test-plan
 
 go 1.18
 
