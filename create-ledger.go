@@ -21,25 +21,20 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	// wait for the network to initialize; this should be pretty fast.
 	netclient.MustWaitNetworkInitialized(ctx)
 
-	peerInfoTopic := sync.NewTopic("peer-info", &PeerInfo{})
-
 	// signal entry in the 'init' state, and obtain a sequence number.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 
-	myUrl := generateMyUrl(netclient, seq)
-	myAddress, myKey := generateRandomAddress()
-
-	// Publish my entry
-	client.Publish(ctx, peerInfoTopic, &PeerInfo{myAddress, myUrl, false})
+	me, myKey := generateMe(seq, netclient, 0)
+	runenv.RecordMessage("I am %+v", me)
 
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount).C
 
-	peers := getPeers(ctx, client, peerInfoTopic, runenv)
+	peers := getPeers(me, ctx, client, runenv)
 
-	chain := setupChain(runenv, ctx, client, myAddress)
+	chain := setupChain(me, runenv, ctx, client)
 
-	nitroClient, ms := createNitroClient(seq, myKey, myUrl, peers, chain)
+	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
 	runenv.RecordMessage("nitro client created")
 
 	defer ms.Close()
@@ -53,7 +48,7 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	if isChannelCreator {
 		for p := range peers {
 
-			id := createLedgerChannel(runenv, myAddress, p, nitroClient)
+			id := createLedgerChannel(runenv, me.Address, p, nitroClient)
 			cm.WatchObjective(id)
 
 		}

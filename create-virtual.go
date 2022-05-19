@@ -22,42 +22,32 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	// wait for the network to initialize; this should be pretty fast.
 	netclient.MustWaitNetworkInitialized(ctx)
 
-	peerInfoTopic := sync.NewTopic("peer-info", &PeerInfo{})
-
 	// signal entry in the 'init' state, and obtain a sequence number.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
-
-	myUrl := generateMyUrl(netclient, seq)
-	myAddress, myKey := generateRandomAddress()
-
 	numOfHubs := int64(runenv.IntParam("numOfHubs"))
-	isHub := seq <= numOfHubs
 
-	// Publish my entry
-	client.Publish(ctx, peerInfoTopic, &PeerInfo{myAddress, myUrl, isHub})
-
+	me, myKey := generateMe(seq, netclient, numOfHubs)
+	runenv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address and broadcasted it.
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount).C
 
 	// Read all our peers from the sync.Topic
-	peers := getPeers(ctx, client, peerInfoTopic, runenv)
+	peers := getPeers(me, ctx, client, runenv)
 
-	runenv.RecordMessage("I am %+v", peers[myAddress])
+	chain := setupChain(me, runenv, ctx, client)
 
-	chain := setupChain(runenv, ctx, client, myAddress)
-
-	nitroClient, ms := createNitroClient(seq, myKey, myUrl, peers, chain)
+	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
 	runenv.RecordMessage("nitro client created")
 
 	client.MustSignalEntry(ctx, "clientReady")
 	<-client.MustBarrier(ctx, sync.State("clientReady"), runenv.TestInstanceCount).C
 
-	if !isHub {
+	if !me.IsHub {
 		ledgerCm := NewCompletionMonitor(nitroClient, *runenv)
 		for _, p := range peers {
-			if p.Address != myAddress && p.IsHub {
-				id := createLedgerChannel(runenv, myAddress, p.Address, nitroClient)
+			if p.Address != me.Address && p.IsHub {
+				id := createLedgerChannel(runenv, me.Address, p.Address, nitroClient)
 
 				ledgerCm.WatchObjective(id)
 
@@ -69,14 +59,14 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runenv.TestInstanceCount).C
 	runenv.RecordMessage("All ledger channel objectives completed")
 	cm := NewCompletionMonitor(nitroClient, *runenv)
-	if !isHub {
+	if !me.IsHub {
 		numOfChannels := runenv.IntParam("numOfChannels")
 
 		for i := 0; i < numOfChannels; i++ {
 
-			hubToUse := selectRandomPeer(peers, myAddress, true)
-			peer := selectRandomPeer(peers, myAddress, false)
-			id := createVirtualChannel(runenv, myAddress, hubToUse, peer, nitroClient)
+			hubToUse := selectRandomPeer(peers, me.Address, true)
+			peer := selectRandomPeer(peers, me.Address, false)
+			id := createVirtualChannel(runenv, me.Address, hubToUse, peer, nitroClient)
 			cm.WatchObjective(id)
 		}
 

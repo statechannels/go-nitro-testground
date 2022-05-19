@@ -25,9 +25,16 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func getPeers(ctx context.Context, client sync.Client, peerTopic *sync.Topic, runenv *runtime.RunEnv) map[types.Address]PeerInfo {
+func getPeers(me PeerInfo, ctx context.Context, client sync.Client, runenv *runtime.RunEnv) map[types.Address]PeerInfo {
+
+	peerTopic := sync.NewTopic("peer-info", &PeerInfo{})
+
+	// Publish my entry to the topic
+	client.Publish(ctx, peerTopic, me)
+
 	peers := map[types.Address]PeerInfo{}
 	peerChannel := make(chan *PeerInfo)
+	// Ready all my peers entries from the topic
 	client.Subscribe(ctx, peerTopic, peerChannel)
 
 	for i := 0; i <= runenv.TestInstanceCount-1; i++ {
@@ -78,20 +85,20 @@ func replayTransactions(runenv *runtime.RunEnv, ctx context.Context, client *syn
 }
 
 // setupChain creates a mock chain instance and will share transactions with other MockChains using a sync.Topic
-func setupChain(runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, myAddress types.Address) *chainservice.MockChain {
+func setupChain(me PeerInfo, runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient) *chainservice.MockChain {
 
 	transListener := make(chan protocols.ChainTransaction, 1000)
 
 	chain := chainservice.NewMockChainWithTransactionListener(transListener)
 	transTopic := sync.NewTopic("chain-transaction", &PeerTransaction{})
-	go shareTransactions(transListener, runenv, ctx, client, transTopic, &chain, myAddress)
-	go replayTransactions(runenv, ctx, client, transTopic, &chain, myAddress)
+	go shareTransactions(transListener, runenv, ctx, client, transTopic, &chain, me.Address)
+	go replayTransactions(runenv, ctx, client, transTopic, &chain, me.Address)
 
 	return &chain
 }
 
 // createNitroClient starts a nitro client using the given unique sequence number and private key.
-func createNitroClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[types.Address]PeerInfo, chain *chainservice.MockChain) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService) {
+func createNitroClient(me PeerInfo, myKey *ecdsa.PrivateKey, peers map[types.Address]PeerInfo, chain *chainservice.MockChain) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService) {
 
 	store := store.NewMemStore(crypto.FromECDSA(myKey))
 	myAddress := getAddressFromSecretKey(*myKey)
@@ -100,11 +107,11 @@ func createNitroClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers m
 		peerUrlMap[p.Address] = p.Url
 	}
 
-	ms := simpletcp.NewSimpleTCPMessageService(myUrl, peerUrlMap)
+	ms := simpletcp.NewSimpleTCPMessageService(me.Url, peerUrlMap)
 
 	chainservice := chainservice.NewSimpleChainService(chain, myAddress)
 	// TODO: Figure out good place to log this
-	filename := filepath.Join("../artifacts", fmt.Sprintf("testground-%d.log", seq))
+	filename := filepath.Join("../artifacts", fmt.Sprintf("testground-%s.log", me.Address))
 	logDestination, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
 
 	client := nitroclient.New(ms, chainservice, store, logDestination)
@@ -203,4 +210,15 @@ func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, inter
 	r := nitroClient.CreateVirtualChannel(request)
 	return r.Id
 
+}
+
+// generateMe generates peer info for the instance.
+// It relies on being provided a unique sequence number.
+func generateMe(seq int64, c *network.Client, numOfHubs int64) (PeerInfo, *ecdsa.PrivateKey) {
+	url := generateMyUrl(c, seq)
+	address, myKey := generateRandomAddress()
+
+	isHub := seq <= numOfHubs
+
+	return PeerInfo{Url: url, Address: address, IsHub: isHub}, myKey
 }
