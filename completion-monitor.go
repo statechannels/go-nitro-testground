@@ -54,6 +54,7 @@ func (c *completionMonitor) watch() {
 		select {
 		case id := <-c.client.CompletedObjectives():
 			c.runenv.D().Counter("completed-objectives").Inc(1)
+			c.runenv.RecordMessage("objective complete %s", id)
 			c.completed[id] = true
 
 		case <-c.quit:

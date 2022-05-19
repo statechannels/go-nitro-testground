@@ -88,7 +88,7 @@ func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[typ
 	ms := simpletcp.NewSimpleTCPMessageService(myUrl, peerUrlMap)
 
 	chain := chainservice.NewMockChainWithTransactionListener(transListener)
-	
+
 	chain.Subscribe(myAddress)
 	chainservice := chainservice.NewSimpleChainService(&chain, myAddress)
 	// TODO: Figure out good place to log this
@@ -189,7 +189,6 @@ func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, inter
 		Nonce:             rand.Int63(),
 	}
 	r := nitroClient.CreateVirtualChannel(request)
-	runenv.RecordMessage("virtual channel creation started %s", r.ChannelId)
 	return r.Id
 
 }

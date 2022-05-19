@@ -66,14 +66,13 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 
 				ledgerCm.WatchObjective(id)
 
-				runenv.RecordMessage("created channel with hub")
 			}
 		}
 		ledgerCm.WaitForObjectivesToComplete()
 	}
 	client.MustSignalEntry(ctx, sync.State("ledgerDone"))
 	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runenv.TestInstanceCount).C
-
+	runenv.RecordMessage("All ledger channel objectives completed")
 	cm := NewCompletionMonitor(nitroClient, *runenv)
 	if !isHub {
 		numOfChannels := runenv.IntParam("numOfChannels")
@@ -88,8 +87,10 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 
 	}
 	cm.WaitForObjectivesToComplete()
+	runenv.RecordMessage("All virtual channel objectives completed")
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C
+
 	// TODO: We sleep a second to make sure messages are flushed
 	// There's probably a more elegant solution
 	time.Sleep(time.Second)
