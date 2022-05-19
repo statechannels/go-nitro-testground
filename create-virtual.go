@@ -14,18 +14,17 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	client := sync.MustBoundClient(ctx, runenv)
 	defer client.Close()
 
-	// instantiate a network client; see 'Traffic shaping' in the docs.
-	netclient := network.NewClient(client, runenv)
+	// instantiate a network client amd wait for it to be ready.
+	net := network.NewClient(client, runenv)
 	runenv.RecordMessage("waiting for network initialization")
+	net.MustWaitNetworkInitialized(ctx)
 
-	// wait for the network to initialize; this should be pretty fast.
-	netclient.MustWaitNetworkInitialized(ctx)
-
-	// signal entry in the 'init' state, and obtain a unique sequence number.
+	// This generates a unqiue sequence number for this test instance.
+	// We use seq to determine the role we play and the port for our message service.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 	numOfHubs := int64(runenv.IntParam("numOfHubs"))
 
-	me, myKey := generateMe(seq, netclient, numOfHubs)
+	me, myKey := generateMe(seq, net, numOfHubs)
 
 	runenv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
