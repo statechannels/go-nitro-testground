@@ -33,7 +33,7 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	<-client.MustBarrier(ctx, sync.State("peerInfoGenerated"), runenv.TestInstanceCount).C
 
 	// Broadcasts our info and get peer info from all other instances.
-	peers := getPeers(me, ctx, client, runenv)
+	peers := getPeers(me, ctx, client, runenv.TestInstanceCount)
 	// Set up our mock chain that communicates with our instances using a sync.Topic
 	chain := setupChain(me, runenv, ctx, client)
 
@@ -47,7 +47,7 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 
 	if !me.IsHub {
 		// Create ledger channels between me and any hubs.
-		createLedgerChannels(me, runenv, nitroClient, filterPeers(peers, me.Address, true))
+		createLedgerChannels(me, runenv, nitroClient, filterPeersByHub(peers, true))
 	}
 	runenv.RecordMessage("All ledger channel objectives completed")
 
@@ -61,8 +61,8 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	if !me.IsHub {
 		for i := 0; i < numOfChannels; i++ {
 
-			hubToUse := selectRandomPeer(peers, me.Address, true)
-			peer := selectRandomPeer(peers, me.Address, false)
+			hubToUse := selectRandomPeer(filterPeersByHub(peers, true))
+			peer := selectRandomPeer(filterPeersByHub(peers, false))
 			id := createVirtualChannel(runenv, me.Address, hubToUse, peer, nitroClient)
 			cm.WatchObjective(id)
 		}

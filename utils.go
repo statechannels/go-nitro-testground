@@ -25,7 +25,10 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func getPeers(me PeerInfo, ctx context.Context, client sync.Client, runenv *runtime.RunEnv) map[types.Address]PeerInfo {
+// getPeers will broadcast our peer info to other instances and listen for broadcasts from other instances.
+// It returns a map that contains a PeerInfo for all other instances.
+// The map will not contain a PeerInfo for the current instance.
+func getPeers(me PeerInfo, ctx context.Context, client sync.Client, instances int) map[types.Address]PeerInfo {
 
 	peerTopic := sync.NewTopic("peer-info", &PeerInfo{})
 
@@ -37,20 +40,14 @@ func getPeers(me PeerInfo, ctx context.Context, client sync.Client, runenv *runt
 	// Ready all my peers entries from the topic
 	client.Subscribe(ctx, peerTopic, peerChannel)
 
-	for i := 0; i <= runenv.TestInstanceCount-1; i++ {
+	for i := 0; i <= instances-1; i++ {
 		t := <-peerChannel
-		peers[t.Address] = *t
+		// We only add the peer info if it's not ours
+		if t.Address != me.Address {
+			peers[t.Address] = *t
+		}
 	}
 	return peers
-}
-
-func generateRandomAddress() (types.Address, *ecdsa.PrivateKey) {
-	sk, err := crypto.GenerateKey()
-	if err != nil {
-		panic(err)
-	}
-	myAddress := getAddressFromSecretKey(*sk)
-	return myAddress, sk
 }
 
 func shareTransactions(listener chan protocols.ChainTransaction, runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
@@ -101,7 +98,7 @@ func setupChain(me PeerInfo, runenv *runtime.RunEnv, ctx context.Context, client
 func createNitroClient(me PeerInfo, myKey *ecdsa.PrivateKey, peers map[types.Address]PeerInfo, chain *chainservice.MockChain) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService) {
 
 	store := store.NewMemStore(crypto.FromECDSA(myKey))
-	myAddress := getAddressFromSecretKey(*myKey)
+
 	peerUrlMap := make(map[types.Address]string)
 	for _, p := range peers {
 		peerUrlMap[p.Address] = p.Url
@@ -109,7 +106,7 @@ func createNitroClient(me PeerInfo, myKey *ecdsa.PrivateKey, peers map[types.Add
 
 	ms := simpletcp.NewSimpleTCPMessageService(me.Url, peerUrlMap)
 
-	chainservice := chainservice.NewSimpleChainService(chain, myAddress)
+	chainservice := chainservice.NewSimpleChainService(chain, me.Address)
 	// TODO: Figure out good place to log this
 	filename := filepath.Join("../artifacts", fmt.Sprintf("testground-%s.log", me.Address))
 	logDestination, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
@@ -125,15 +122,6 @@ func generateMyUrl(n *network.Client, seq int64) string {
 		panic(err)
 	}
 	return fmt.Sprintf("%s:%d", host, PORT_START+seq)
-}
-
-func getAddressFromSecretKey(secretKey ecdsa.PrivateKey) types.Address {
-	publicKey := secretKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		log.Fatal("error casting public key to ECDSA")
-	}
-	return crypto.PubkeyToAddress(*publicKeyECDSA)
 }
 
 func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
@@ -164,20 +152,19 @@ func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counte
 
 }
 
-func selectRandomPeer(peers map[types.Address]PeerInfo, myAddress types.Address, shouldBeHub bool) types.Address {
+func selectRandomPeer(peers []PeerInfo) types.Address {
 
-	filtered := filterPeers(peers, myAddress, shouldBeHub)
+	randomIndex := rand.Intn(len(peers))
 
-	randomIndex := rand.Intn(len(filtered))
-
-	return filtered[randomIndex].Address
+	return peers[randomIndex].Address
 
 }
 
-func filterPeers(peers map[types.Address]PeerInfo, myAddress types.Address, shouldBeHub bool) []PeerInfo {
+// filterPeersByHub returns peers that where p.IsHub == shouldBeHub
+func filterPeersByHub(peers map[types.Address]PeerInfo, shouldBeHub bool) []PeerInfo {
 	filteredPeers := make([]PeerInfo, 0)
 	for _, p := range peers {
-		if p.Address != myAddress && p.IsHub == shouldBeHub {
+		if p.IsHub == shouldBeHub {
 			filteredPeers = append(filteredPeers, p)
 		}
 	}
@@ -216,7 +203,16 @@ func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, inter
 // It relies on being provided a unique sequence number.
 func generateMe(seq int64, c *network.Client, numOfHubs int64) (PeerInfo, *ecdsa.PrivateKey) {
 	url := generateMyUrl(c, seq)
-	address, myKey := generateRandomAddress()
+	myKey, err := crypto.GenerateKey()
+	if err != nil {
+		panic(err)
+	}
+	publicKey := myKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		log.Fatal("error casting public key to ECDSA")
+	}
+	address := crypto.PubkeyToAddress(*publicKeyECDSA)
 
 	isHub := seq <= numOfHubs
 

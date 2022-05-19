@@ -31,7 +31,7 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount).C
 
-	peers := getPeers(me, ctx, client, runenv)
+	peers := getPeers(me, ctx, client, runenv.TestInstanceCount)
 
 	chain := setupChain(me, runenv, ctx, client)
 
@@ -46,7 +46,7 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	// We can only have one direct channel with a peer, so we only allow one client to create channels
 	isChannelCreator := seq == 1
 	if isChannelCreator {
-		createLedgerChannels(me, runenv, nitroClient, filterPeers(peers, me.Address, false))
+		createLedgerChannels(me, runenv, nitroClient, filterPeersByHub(peers, false))
 	}
 
 	client.MustSignalEntry(ctx, sync.State("done"))
