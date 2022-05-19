@@ -53,7 +53,7 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 
 	// We can only have one direct channel with a peer, so we only allow one client to create channels
 	isChannelCreator := seq == 1
-	cm := NewCompletionMonitor(nitroClient)
+	cm := NewCompletionMonitor(nitroClient, *runenv)
 	if isChannelCreator {
 		for p := range peers {
 

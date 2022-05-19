@@ -5,6 +5,7 @@ import (
 
 	nitroclient "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/protocols"
+	"github.com/testground/sdk-go/runtime"
 )
 
 const SLEEP_TIME = time.Millisecond * 10
@@ -14,10 +15,11 @@ type completionMonitor struct {
 	completed map[protocols.ObjectiveId]bool
 	client    *nitroclient.Client
 	quit      chan struct{}
+	runenv    runtime.RunEnv
 }
 
 // NewCompletionMonitor creates a new completion monitor
-func NewCompletionMonitor(client *nitroclient.Client) *completionMonitor {
+func NewCompletionMonitor(client *nitroclient.Client, runenv runtime.RunEnv) *completionMonitor {
 
 	completed := make(map[protocols.ObjectiveId]bool)
 
@@ -25,6 +27,7 @@ func NewCompletionMonitor(client *nitroclient.Client) *completionMonitor {
 		completed: completed,
 		client:    client,
 		quit:      make(chan struct{}),
+		runenv:    runenv,
 	}
 	go c.watch()
 	return c
@@ -50,7 +53,7 @@ func (c *completionMonitor) watch() {
 	for {
 		select {
 		case id := <-c.client.CompletedObjectives():
-
+			c.runenv.D().Counter("completed-objectives").Inc(1)
 			c.completed[id] = true
 
 		case <-c.quit:

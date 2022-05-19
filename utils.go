@@ -86,7 +86,9 @@ func setupClient(seq int64, myKey *ecdsa.PrivateKey, myUrl string, peers map[typ
 	}
 
 	ms := simpletcp.NewSimpleTCPMessageService(myUrl, peerUrlMap)
+
 	chain := chainservice.NewMockChainWithTransactionListener(transListener)
+	
 	chain.Subscribe(myAddress)
 	chainservice := chainservice.NewSimpleChainService(&chain, myAddress)
 	// TODO: Figure out good place to log this

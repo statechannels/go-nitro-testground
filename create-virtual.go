@@ -45,7 +45,9 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	runenv.RecordMessage("I am %+v", peers[myAddress])
 
 	transListener := make(chan protocols.ChainTransaction, 10)
+
 	nitroClient, ms, chain := setupClient(seq, myKey, myUrl, peers, transListener)
+	
 	runenv.RecordMessage("nitro client created")
 
 	shareTransactions(transListener, runenv, ctx, client, transTopic, chain, myAddress)
@@ -55,11 +57,13 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 	<-client.MustBarrier(ctx, sync.State("clientReady"), runenv.TestInstanceCount).C
 
 	if !isHub {
-		ledgerCm := NewCompletionMonitor(nitroClient)
+		ledgerCm := NewCompletionMonitor(nitroClient, *runenv)
 		for _, p := range peers {
 			if p.Address != myAddress && p.IsHub {
 				id := createLedgerChannel(runenv, myAddress, p.Address, nitroClient)
+				
 				ledgerCm.Add(id)
+				
 				runenv.RecordMessage("created channel with hub")
 			}
 		}
@@ -72,7 +76,8 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 
 	client.MustSignalEntry(ctx, sync.State("ledgerDone"))
 	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runenv.TestInstanceCount).C
-	cm := NewCompletionMonitor(nitroClient)
+
+	cm := NewCompletionMonitor(nitroClient, *runenv)
 	if !isHub {
 		numOfChannels := runenv.IntParam("numOfChannels")
 
