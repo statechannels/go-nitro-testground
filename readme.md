@@ -5,7 +5,7 @@ There are currently two test cases:
 1. [create-virtual](./create-virtual.go): A scenario where multiple virtual channels are created with a configurable amount of peers and hubs.
 2. [create-ledger](./create-ledger.go): A scenario which creates directly funded ledger channels.
 
-FYI: The `go-nitro-test-plan` module depends on a specific [branch](https://github.com/statechannels/go-nitro/tree/broadcast-tx) of `go-nitro`.
+FYI: The `go-nitro-test-plan` module depends on a specific [branch](https://github.com/statechannels/go-nitro/tree/only-client-close) of `go-nitro`.
 
 
 ## Getting Started
