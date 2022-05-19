@@ -22,7 +22,7 @@ enabled = true
 enabled = true
 
 [[testcases]]
-name= "create-ledgers"
+name= "create-ledger"
 instances = { min = 2, max = 100, default = 5 }
 
 
