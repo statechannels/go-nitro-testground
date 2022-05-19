@@ -21,7 +21,6 @@ import (
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
-	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
 
@@ -50,7 +49,7 @@ func getPeers(me PeerInfo, ctx context.Context, client sync.Client, instances in
 	return peers
 }
 
-func shareTransactions(listener chan protocols.ChainTransaction, runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
+func shareTransactions(listener chan protocols.ChainTransaction, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
 	// TODO: Close this gracefully?
 	go func() {
 		for trans := range listener {
@@ -65,7 +64,7 @@ func shareTransactions(listener chan protocols.ChainTransaction, runenv *runtime
 }
 
 // replayTransactions listens for transactions that occured on other client's chains and replays them on ours
-func replayTransactions(runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
+func replayTransactions(ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
 	// TODO: Close this gracefully?
 	go func() {
 		peerTransactions := make(chan *PeerTransaction)
@@ -82,14 +81,14 @@ func replayTransactions(runenv *runtime.RunEnv, ctx context.Context, client *syn
 }
 
 // setupChain creates a mock chain instance and will share transactions with other MockChains using a sync.Topic
-func setupChain(me PeerInfo, runenv *runtime.RunEnv, ctx context.Context, client *sync.DefaultClient) *chainservice.MockChain {
+func setupChain(me PeerInfo, ctx context.Context, client *sync.DefaultClient) *chainservice.MockChain {
 
 	transListener := make(chan protocols.ChainTransaction, 1000)
 
 	chain := chainservice.NewMockChainWithTransactionListener(transListener)
 	transTopic := sync.NewTopic("chain-transaction", &PeerTransaction{})
-	go shareTransactions(transListener, runenv, ctx, client, transTopic, &chain, me.Address)
-	go replayTransactions(runenv, ctx, client, transTopic, &chain, me.Address)
+	go shareTransactions(transListener, ctx, client, transTopic, &chain, me.Address)
+	go replayTransactions(ctx, client, transTopic, &chain, me.Address)
 
 	return &chain
 }
@@ -124,7 +123,7 @@ func generateMyUrl(n *network.Client, seq int64) string {
 	return fmt.Sprintf("%s:%d", host, PORT_START+seq)
 }
 
-func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
+func createLedgerChannel(myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
@@ -147,7 +146,7 @@ func createLedgerChannel(runenv *runtime.RunEnv, myAddress types.Address, counte
 		Nonce:             rand.Int63(),
 	}
 	r := nitroClient.CreateDirectChannel(request)
-	runenv.RecordMessage("channel %s created", r.ChannelId)
+
 	return r.Id
 
 }
@@ -171,7 +170,7 @@ func filterPeersByHub(peers map[types.Address]PeerInfo, shouldBeHub bool) []Peer
 	return filteredPeers
 }
 
-func createVirtualChannel(runenv *runtime.RunEnv, myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
+func createVirtualChannel(myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{

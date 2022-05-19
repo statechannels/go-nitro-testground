@@ -9,15 +9,15 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func createLedgerTest(runenv *runtime.RunEnv) error {
+func createLedgerTest(runEnv *runtime.RunEnv) error {
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
-	client := sync.MustBoundClient(ctx, runenv)
+	client := sync.MustBoundClient(ctx, runEnv)
 	defer client.Close()
 
 	// instantiate a network client; see 'Traffic shaping' in the docs.
-	netclient := network.NewClient(client, runenv)
-	runenv.RecordMessage("waiting for network initialization")
+	netclient := network.NewClient(client, runEnv)
+	runEnv.RecordMessage("waiting for network initialization")
 
 	// wait for the network to initialize; this should be pretty fast.
 	netclient.MustWaitNetworkInitialized(ctx)
@@ -26,31 +26,31 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 
 	me, myKey := generateMe(seq, netclient, 0)
-	runenv.RecordMessage("I am %+v", me)
+	runEnv.RecordMessage("I am %+v", me)
 
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
-	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runenv.TestInstanceCount).C
+	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runEnv.TestInstanceCount).C
 
-	peers := getPeers(me, ctx, client, runenv.TestInstanceCount)
+	peers := getPeers(me, ctx, client, runEnv.TestInstanceCount)
 
-	chain := setupChain(me, runenv, ctx, client)
+	chain := setupChain(me, ctx, client)
 
 	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
-	runenv.RecordMessage("nitro client created")
+	runEnv.RecordMessage("nitro client created")
 
 	defer ms.Close()
 
 	client.MustSignalEntry(ctx, "clientReady")
-	<-client.MustBarrier(ctx, sync.State("clientReady"), runenv.TestInstanceCount).C
+	<-client.MustBarrier(ctx, sync.State("clientReady"), runEnv.TestInstanceCount).C
 
 	// We can only have one direct channel with a peer, so we only allow one client to create channels
 	isChannelCreator := seq == 1
 	if isChannelCreator {
-		createLedgerChannels(me, runenv, nitroClient, filterPeersByHub(peers, false))
+		createLedgerChannels(me, runEnv, nitroClient, filterPeersByHub(peers, false))
 	}
 
 	client.MustSignalEntry(ctx, sync.State("done"))
-	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C
+	<-client.MustBarrier(ctx, sync.State("done"), runEnv.TestInstanceCount).C
 	return nil
 }
 
@@ -61,7 +61,7 @@ func createLedgerChannels(me PeerInfo, runenv *runtime.RunEnv, nc *nitroclient.C
 
 	for _, p := range filteredPeers {
 
-		id := createLedgerChannel(runenv, me.Address, p.Address, nc)
+		id := createLedgerChannel(me.Address, p.Address, nc)
 		cm.WatchObjective(id)
 
 	}
