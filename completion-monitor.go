@@ -33,12 +33,12 @@ func NewCompletionMonitor(client *nitroclient.Client, runenv runtime.RunEnv) *co
 	return c
 }
 
-// Add adds the objective id for us to monitor
-func (c *completionMonitor) Add(id protocols.ObjectiveId) {
+// WatchObjective adds the objective id to the list of objectives to watch
+func (c *completionMonitor) WatchObjective(id protocols.ObjectiveId) {
 	c.completed[id] = false
 }
 
-func (c *completionMonitor) AllDone() bool {
+func (c *completionMonitor) done() bool {
 	for _, isComplete := range c.completed {
 		if !isComplete {
 
@@ -62,18 +62,14 @@ func (c *completionMonitor) watch() {
 	}
 }
 
-// Wait blocks until all objectives are completed
-func (c *completionMonitor) Wait() {
+// WaitForObjectivesToComplete blocks until all objectives are completed
+func (c *completionMonitor) WaitForObjectivesToComplete() {
 	for {
-		time.Sleep(SLEEP_TIME)
 
-		if c.AllDone() {
+		if c.done() {
+			close(c.quit)
 			break
 		}
+		time.Sleep(SLEEP_TIME)
 	}
-}
-
-// Stop stops the completion monitor listening to the CompletedObjectives chan
-func (c *completionMonitor) Stop() {
-	close(c.quit)
 }

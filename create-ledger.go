@@ -58,16 +58,13 @@ func createLedgerTest(runenv *runtime.RunEnv) error {
 		for p := range peers {
 
 			id := createLedgerChannel(runenv, myAddress, p, nitroClient)
-			cm.Add(id)
+			cm.WatchObjective(id)
 
 		}
 
 	}
 
-	if !cm.AllDone() {
-		cm.Wait()
-	}
-	cm.Stop()
+	cm.WaitForObjectivesToComplete()
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C

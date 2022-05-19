@@ -64,18 +64,13 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 			if p.Address != myAddress && p.IsHub {
 				id := createLedgerChannel(runenv, myAddress, p.Address, nitroClient)
 
-				ledgerCm.Add(id)
+				ledgerCm.WatchObjective(id)
 
 				runenv.RecordMessage("created channel with hub")
 			}
 		}
-		if !ledgerCm.AllDone() {
-			ledgerCm.Wait()
-		}
-
-		ledgerCm.Stop()
+		ledgerCm.WaitForObjectivesToComplete()
 	}
-
 	client.MustSignalEntry(ctx, sync.State("ledgerDone"))
 	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runenv.TestInstanceCount).C
 
@@ -88,14 +83,11 @@ func createVirtualTest(runenv *runtime.RunEnv) error {
 			hubToUse := selectRandomPeer(peers, myAddress, true)
 			peer := selectRandomPeer(peers, myAddress, false)
 			id := createVirtualChannel(runenv, myAddress, hubToUse, peer, nitroClient)
-			cm.Add(id)
+			cm.WatchObjective(id)
 		}
 
 	}
-	if !cm.AllDone() {
-		cm.Wait()
-	}
-	cm.Stop()
+	cm.WaitForObjectivesToComplete()
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runenv.TestInstanceCount).C
 	// TODO: We sleep a second to make sure messages are flushed
