@@ -515,8 +515,6 @@ github.com/spf13/pflag v0.0.0-20170130214245-9ff6c6923cff/go.mod h1:DYY7MBk1bdzu
 github.com/spf13/pflag v1.0.1-0.20171106142849-4c012f6dcd95/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
-github.com/statechannels/go-nitro v0.0.0-20220518184214-f6bb7366016c h1:/O4WTFUEHArnnI7FB422XS1rMjkGK/IngDS+OyyD/8A=
-github.com/statechannels/go-nitro v0.0.0-20220518184214-f6bb7366016c/go.mod h1:bCLROwU0ptHIcs9aCWQvvecc32Wit7NlFEyLxNz3kgI=
 github.com/statechannels/go-nitro v0.0.0-20220519205300-241e1920e54e h1:TXX/hMzWEokdteP6JJast/ZZviiJNulEZRgTJXqrQ40=
 github.com/statechannels/go-nitro v0.0.0-20220519205300-241e1920e54e/go.mod h1:bCLROwU0ptHIcs9aCWQvvecc32Wit7NlFEyLxNz3kgI=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
