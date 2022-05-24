@@ -2,7 +2,7 @@ module github.com/statechannels/go-nitro-test-plan
 
 go 1.18
 
-require github.com/statechannels/go-nitro v0.0.0-20220519205300-241e1920e54e
+require github.com/statechannels/go-nitro v0.0.0-20220524172027-e876750be91c
 
 require (
 	github.com/DistributedClocks/GoVector v0.0.0-20210402100930-db949c81a0af // indirect
