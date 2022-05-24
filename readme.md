@@ -9,6 +9,7 @@ FYI: The `go-nitro-test-plan` module depends on a specific [branch](https://gith
 
 
 ## Getting Started
+**Prerequisite:** Docker must be install and the docker daemon must be running.
 
 Install testground and build it:
 ```sh
