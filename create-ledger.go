@@ -35,7 +35,7 @@ func createLedgerTest(runEnv *runtime.RunEnv) error {
 
 	chain := setupChain(me.PeerInfo, ctx, client)
 
-	nitroClient, ms := createNitroClient(me, peers, chain)
+	nitroClient, ms := createNitroClient(me, peers, chain, runEnv.D())
 	runEnv.RecordMessage("nitro client created")
 
 	defer ms.Close()

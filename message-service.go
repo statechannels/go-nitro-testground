@@ -17,6 +17,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/types"
+	"github.com/testground/sdk-go/runtime"
 )
 
 const (
@@ -36,6 +37,8 @@ type P2PMessageService struct {
 
 	me      MyInfo
 	p2pHost host.Host
+
+	metrics *runtime.MetricsApi
 }
 
 type PeerInfo struct {
@@ -63,7 +66,7 @@ func (p PeerInfo) MultiAddress() multiaddr.Multiaddr {
 }
 
 // NewTestMessageService returns a running SimpleTcpMessageService listening on the given url
-func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo) *P2PMessageService {
+func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo, metrics *runtime.MetricsApi) *P2PMessageService {
 
 	options := []libp2p.Option{libp2p.Identity(me.MessageKey),
 		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", me.Port)),
@@ -84,6 +87,7 @@ func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo) *P2PMessa
 		p2pHost: host,
 		quit:    make(chan struct{}),
 		me:      me,
+		metrics: metrics,
 	}
 	h.p2pHost.SetStreamHandler(MESSAGE_ADDRESS, func(stream network.Stream) {
 
@@ -152,6 +156,7 @@ func (s *P2PMessageService) connectToPeers() {
 		case m := <-s.in:
 			raw, err := m.Serialize()
 			s.checkError(err)
+			s.recordOutgoingStats(m)
 			writer := bufio.NewWriter(peerStreams[m.To])
 			_, err = writer.WriteString(raw)
 			s.checkError(err)
@@ -191,5 +196,13 @@ func (s *P2PMessageService) Close() {
 
 	close(s.quit)
 	s.p2pHost.Close()
+
+}
+
+func (s *P2PMessageService) recordOutgoingStats(m protocols.Message) {
+	point := fmt.Sprintf("proposal-count,sender=%s,receiver=%s", s.me.Address, m.To)
+	proposalCount := len(m.SignedProposals())
+
+	s.metrics.RecordPoint(point, float64(proposalCount))
 
 }
