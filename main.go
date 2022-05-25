@@ -8,12 +8,7 @@ import (
 	"github.com/testground/sdk-go/run"
 )
 
-// PeerInfo contains information about a peer.
-type PeerInfo struct {
-	Address types.Address
-	Url     string
-	IsHub   bool
-}
+
 
 // PeerTransaction is a a transaction that also indicates which peer sent it.
 // This is used to replay a transaction on our local chain instance

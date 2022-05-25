@@ -24,7 +24,7 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 	numOfHubs := int64(runEnv.IntParam("numOfHubs"))
 
-	me, myKey := generateMe(seq, net, numOfHubs)
+	me := generateMe(seq, seq <= numOfHubs)
 
 	runEnv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
@@ -32,11 +32,11 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 	<-client.MustBarrier(ctx, sync.State("peerInfoGenerated"), runEnv.TestInstanceCount).C
 
 	// Broadcasts our info and get peer info from all other instances.
-	peers := getPeers(me, ctx, client, runEnv.TestInstanceCount)
+	peers := getPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 	// Set up our mock chain that communicates with our instances using a sync.Topic
-	chain := setupChain(me, ctx, client)
+	chain := setupChain(me.PeerInfo, ctx, client)
 
-	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
+	nitroClient, ms := createNitroClient(me, peers, chain)
 	defer ms.Close()
 	runEnv.RecordMessage("nitro client created")
 
@@ -44,9 +44,13 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 	client.MustSignalEntry(ctx, "clientReady")
 	<-client.MustBarrier(ctx, sync.State("clientReady"), runEnv.TestInstanceCount).C
 
+	ms.DialPeers()
+	client.MustSignalEntry(ctx, "msDialed")
+	<-client.MustBarrier(ctx, sync.State("msDialed"), runEnv.TestInstanceCount).C
+
 	if !me.IsHub {
 		// Create ledger channels between me and any hubs.
-		createLedgerChannels(me, runEnv, nitroClient, filterPeersByHub(peers, true))
+		createLedgerChannels(me.PeerInfo, runEnv, nitroClient, filterPeersByHub(peers, true))
 	}
 	runEnv.RecordMessage("All ledger channel objectives completed")
 
