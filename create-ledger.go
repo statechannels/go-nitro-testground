@@ -25,28 +25,30 @@ func createLedgerTest(runEnv *runtime.RunEnv) error {
 	// signal entry in the 'init' state, and obtain a sequence number.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 
-	me, myKey := generateMe(seq, netclient, 0)
+	me := generateMe(seq, false)
 	runEnv.RecordMessage("I am %+v", me)
 
 	client.MustSignalEntry(ctx, "readyForPeerInfo")
 	<-client.MustBarrier(ctx, sync.State("readyForPeerInfo"), runEnv.TestInstanceCount).C
 
-	peers := getPeers(me, ctx, client, runEnv.TestInstanceCount)
+	peers := getPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
-	chain := setupChain(me, ctx, client)
+	chain := setupChain(me.PeerInfo, ctx, client)
 
-	nitroClient, ms := createNitroClient(me, myKey, peers, chain)
+	nitroClient, ms := createNitroClient(me, peers, chain)
 	runEnv.RecordMessage("nitro client created")
 
 	defer ms.Close()
 
 	client.MustSignalEntry(ctx, "clientReady")
 	<-client.MustBarrier(ctx, sync.State("clientReady"), runEnv.TestInstanceCount).C
-
+	ms.DialPeers()
+	client.MustSignalEntry(ctx, "msDialed")
+	<-client.MustBarrier(ctx, sync.State("msDialed"), runEnv.TestInstanceCount).C
 	// We can only have one direct channel with a peer, so we only allow one client to create channels
 	isChannelCreator := seq == 1
 	if isChannelCreator {
-		createLedgerChannels(me, runEnv, nitroClient, filterPeersByHub(peers, false))
+		createLedgerChannels(me.PeerInfo, runEnv, nitroClient, filterPeersByHub(peers, false))
 	}
 
 	client.MustSignalEntry(ctx, sync.State("done"))

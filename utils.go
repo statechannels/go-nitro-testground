@@ -2,25 +2,24 @@ package main
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"fmt"
-	"log"
 	"math/big"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	p2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitroclient "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
-	simpletcp "github.com/statechannels/go-nitro/client/engine/messageservice/simple-tcp"
 	"github.com/statechannels/go-nitro/client/engine/store"
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/directfund"
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
-	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/sync"
 )
 
@@ -94,16 +93,12 @@ func setupChain(me PeerInfo, ctx context.Context, client *sync.DefaultClient) *c
 }
 
 // createNitroClient starts a nitro client using the given unique sequence number and private key.
-func createNitroClient(me PeerInfo, myKey *ecdsa.PrivateKey, peers map[types.Address]PeerInfo, chain *chainservice.MockChain) (*nitroclient.Client, *simpletcp.SimpleTCPMessageService) {
+func createNitroClient(me MyInfo, peers map[types.Address]PeerInfo, chain *chainservice.MockChain) (*nitroclient.Client, *P2PMessageService) {
 
-	store := store.NewMemStore(crypto.FromECDSA(myKey))
+	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
 
-	peerUrlMap := make(map[types.Address]string)
-	for _, p := range peers {
-		peerUrlMap[p.Address] = p.Url
-	}
+	ms := NewP2PMessageService(me, peers)
 
-	ms := simpletcp.NewSimpleTCPMessageService(me.Url, peerUrlMap)
 
 	chainservice := chainservice.NewSimpleChainService(chain, me.Address)
 	// TODO: Figure out good place to log this
@@ -113,14 +108,6 @@ func createNitroClient(me PeerInfo, myKey *ecdsa.PrivateKey, peers map[types.Add
 	client := nitroclient.New(ms, chainservice, store, logDestination)
 	return &client, ms
 
-}
-
-func generateMyUrl(n *network.Client, seq int64) string {
-	host, err := n.GetDataNetworkIP()
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("%s:%d", host, PORT_START+seq)
 }
 
 func createLedgerChannel(myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
@@ -198,22 +185,24 @@ func createVirtualChannel(myAddress types.Address, intermediary types.Address, c
 
 }
 
-// generateMe generates peer info for the instance.
-// It relies on being provided a unique sequence number.
-func generateMe(seq int64, c *network.Client, numOfHubs int64) (PeerInfo, *ecdsa.PrivateKey) {
-	url := generateMyUrl(c, seq)
-	myKey, err := crypto.GenerateKey()
+// GeneratePeerInfo generates a random  message key/ peer id and returns a PeerInfo
+func generateMe(seq int64, isHub bool) MyInfo {
+
+	messageKey, _, err := p2pcrypto.GenerateECDSAKeyPair(rand.New(rand.NewSource(time.Now().UnixNano())))
 	if err != nil {
 		panic(err)
 	}
-	publicKey := myKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		log.Fatal("error casting public key to ECDSA")
+
+	id, err := peer.IDFromPrivateKey(messageKey)
+	if err != nil {
+		panic(err)
 	}
-	address := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	isHub := seq <= numOfHubs
-
-	return PeerInfo{Url: url, Address: address, IsHub: isHub}, myKey
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+		panic(err)
+	}
+	address := crypto.PubkeyToAddress(privateKey.PublicKey)
+	port := int64(PORT_START + seq)
+	myPeerInfo := PeerInfo{Id: id, Address: address, IsHub: isHub, Port: port}
+	return MyInfo{myPeerInfo, *privateKey, messageKey}
 }
