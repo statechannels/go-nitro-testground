@@ -15,6 +15,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/multiformats/go-multiaddr"
+	"github.com/statechannels/go-nitro/client/engine/store/safesync"
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/types"
 )
@@ -30,7 +31,7 @@ type P2PMessageService struct {
 	in  chan protocols.Message // for receiving messages from engine
 	out chan protocols.Message // for sending message to engine
 
-	peers map[types.Address]PeerInfo
+	peers safesync.Map[PeerInfo]
 
 	quit chan struct{} // quit is used to signal the goroutine to stop
 
@@ -77,10 +78,14 @@ func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo) *P2PMessa
 		panic(err)
 	}
 
+	safePeers := safesync.Map[PeerInfo]{}
+	for _, p := range peers {
+		safePeers.Store(p.Address.String(), p)
+	}
 	h := &P2PMessageService{
 		in:      make(chan protocols.Message, BUFFER_SIZE),
 		out:     make(chan protocols.Message, BUFFER_SIZE),
-		peers:   peers,
+		peers:   safePeers,
 		p2pHost: host,
 		quit:    make(chan struct{}),
 		me:      me,
@@ -124,10 +129,10 @@ func (s *P2PMessageService) DialPeers() {
 func (s *P2PMessageService) connectToPeers() {
 	// create a map with streams to all peers
 	peerStreams := make(map[types.Address]network.Stream)
-	for _, p := range s.peers {
-		fmt.Printf("Me %+v dialing peer %+v\n", s.me, p)
+	s.peers.Range(func(key string, p PeerInfo) bool {
+
 		if p.Address == s.me.Address {
-			continue
+			return false
 		}
 		// Extract the peer ID from the multiaddr.
 		info, err := peer.AddrInfoFromP2pAddr(p.MultiAddress())
@@ -140,7 +145,8 @@ func (s *P2PMessageService) connectToPeers() {
 		stream, err := s.p2pHost.NewStream(context.Background(), info.ID, MESSAGE_ADDRESS)
 		s.checkError(err)
 		peerStreams[p.Address] = stream
-	}
+		return true
+	})
 	for {
 		select {
 		case <-s.quit:
