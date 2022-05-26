@@ -20,6 +20,7 @@ import (
 	"github.com/statechannels/go-nitro/protocols/directfund"
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
+	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
 
@@ -93,12 +94,11 @@ func setupChain(me PeerInfo, ctx context.Context, client *sync.DefaultClient) *c
 }
 
 // createNitroClient starts a nitro client using the given unique sequence number and private key.
-func createNitroClient(me MyInfo, peers map[types.Address]PeerInfo, chain *chainservice.MockChain) (*nitroclient.Client, *P2PMessageService) {
+func createNitroClient(me MyInfo, peers map[types.Address]PeerInfo, chain *chainservice.MockChain, metrics *runtime.MetricsApi) (*nitroclient.Client, *P2PMessageService) {
 
 	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
 
-	ms := NewP2PMessageService(me, peers)
-
+	ms := NewP2PMessageService(me, peers, metrics)
 
 	chainservice := chainservice.NewSimpleChainService(chain, me.Address)
 	// TODO: Figure out good place to log this

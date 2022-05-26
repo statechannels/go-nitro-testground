@@ -36,7 +36,7 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 	// Set up our mock chain that communicates with our instances using a sync.Topic
 	chain := setupChain(me.PeerInfo, ctx, client)
 
-	nitroClient, ms := createNitroClient(me, peers, chain)
+	nitroClient, ms := createNitroClient(me, peers, chain, runEnv.D())
 	defer ms.Close()
 	runEnv.RecordMessage("nitro client created")
 
