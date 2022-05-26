@@ -206,9 +206,12 @@ func (s *P2PMessageService) Close() {
 }
 
 func (s *P2PMessageService) recordOutgoingStats(m protocols.Message) {
-	point := fmt.Sprintf("proposal-count,sender=%s,receiver=%s", s.me.Address, m.To)
 	proposalCount := len(m.SignedProposals())
+	if proposalCount > 0 {
 
-	s.metrics.RecordPoint(point, float64(proposalCount))
+		first := m.SignedProposals()[0]
+		point := fmt.Sprintf("proposal-count,sender=%s,receiver=%s,ledger=%s", s.me.Address, m.To, first.Payload.Proposal.LedgerID)
+		s.metrics.RecordPoint(point, float64(proposalCount))
 
+	}
 }
