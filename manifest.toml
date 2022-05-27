@@ -33,3 +33,5 @@ instances = { min = 2, max = 100, default = 5 }
     [testcases.params]
     numOfChannels =  { type = "int", default = 2 } 
     numOfHubs = {type ="int", default = 1}
+    networkJitterMS = {type="int", default=0}
+    networkLatencyMS = {type="int", default=0}
