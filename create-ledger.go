@@ -25,7 +25,11 @@ func createLedgerTest(runEnv *runtime.RunEnv) error {
 	// signal entry in the 'init' state, and obtain a sequence number.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 
-	me := generateMe(seq, false)
+	ip, err := netclient.GetDataNetworkIP()
+	if err != nil {
+		panic(err)
+	}
+	me := generateMe(seq, false, ip.String())
 	runEnv.RecordMessage("I am %+v", me)
 
 	client.MustSignalEntry(ctx, "readyForPeerInfo")

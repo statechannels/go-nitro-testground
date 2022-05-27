@@ -43,10 +43,11 @@ type P2PMessageService struct {
 }
 
 type PeerInfo struct {
-	Port    int64
-	Id      peer.ID
-	Address types.Address
-	IsHub   bool
+	Port      int64
+	Id        peer.ID
+	Address   types.Address
+	IsHub     bool
+	IpAddress string
 }
 
 type MyInfo struct {
@@ -58,7 +59,7 @@ type MyInfo struct {
 // MultiAddress returns the multiaddress of the peer based on their port and Id
 func (p PeerInfo) MultiAddress() multiaddr.Multiaddr {
 
-	a, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d/p2p/%s", p.Port, p.Id))
+	a, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d/p2p/%s", p.IpAddress, p.Port, p.Id))
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +71,7 @@ func (p PeerInfo) MultiAddress() multiaddr.Multiaddr {
 func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo, metrics *runtime.MetricsApi) *P2PMessageService {
 
 	options := []libp2p.Option{libp2p.Identity(me.MessageKey),
-		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", me.Port)),
+		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/%s/tcp/%d", me.IpAddress, me.Port)),
 		libp2p.DefaultTransports,
 		libp2p.NoSecurity,
 		libp2p.DefaultMuxers,

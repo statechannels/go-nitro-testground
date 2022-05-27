@@ -186,7 +186,7 @@ func createVirtualChannel(myAddress types.Address, intermediary types.Address, c
 }
 
 // GeneratePeerInfo generates a random  message key/ peer id and returns a PeerInfo
-func generateMe(seq int64, isHub bool) MyInfo {
+func generateMe(seq int64, isHub bool, ipAddress string) MyInfo {
 
 	messageKey, _, err := p2pcrypto.GenerateECDSAKeyPair(rand.New(rand.NewSource(time.Now().UnixNano())))
 	if err != nil {
@@ -203,6 +203,6 @@ func generateMe(seq int64, isHub bool) MyInfo {
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	port := int64(PORT_START + seq)
-	myPeerInfo := PeerInfo{Id: id, Address: address, IsHub: isHub, Port: port}
+	myPeerInfo := PeerInfo{Id: id, Address: address, IsHub: isHub, Port: port, IpAddress: ipAddress}
 	return MyInfo{myPeerInfo, *privateKey, messageKey}
 }

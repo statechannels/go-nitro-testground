@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
@@ -18,13 +19,17 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 	net := network.NewClient(client, runEnv)
 	runEnv.RecordMessage("waiting for network initialization")
 	net.MustWaitNetworkInitialized(ctx)
-
+	fmt.Printf("sidecar: %v\n", runEnv.TestSidecar)
 	// This generates a unqiue sequence number for this test instance.
 	// We use seq to determine the role we play and the port for our message service.
 	seq := client.MustSignalEntry(ctx, sync.State("init"))
 	numOfHubs := int64(runEnv.IntParam("numOfHubs"))
 
-	me := generateMe(seq, seq <= numOfHubs)
+	ip, err := net.GetDataNetworkIP()
+	if err != nil {
+		panic(err)
+	}
+	me := generateMe(seq, seq <= numOfHubs, ip.String())
 
 	runEnv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
