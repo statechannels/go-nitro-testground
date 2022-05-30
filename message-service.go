@@ -29,9 +29,8 @@ const (
 
 // P2PMessageService is a rudimentary message service that uses TCP to send and receive messages
 type P2PMessageService struct {
-	in  chan protocols.Message // for receiving messages from engine
-	out chan protocols.Message // for sending message to engine
-
+	out   chan protocols.Message // for sending message to engine
+	in    chan protocols.Message // for receiving messages from engine
 	peers safesync.Map[PeerInfo]
 
 	quit chan struct{} // quit is used to signal the goroutine to stop
@@ -176,6 +175,12 @@ func (s *P2PMessageService) connectToPeers() {
 
 }
 
+// Send dispatches messages
+func (s *P2PMessageService) Send(msg protocols.Message) {
+	// TODO: Now that the in chan has been deprecated from the API we should remove in from this message serviceß
+	s.in <- msg
+}
+
 // checkError panics if the SimpleTCPMessageService is running, otherwise it just returns
 func (s *P2PMessageService) checkError(err error) {
 	if err == nil {
@@ -192,10 +197,6 @@ func (s *P2PMessageService) checkError(err error) {
 
 func (s *P2PMessageService) Out() <-chan protocols.Message {
 	return s.out
-}
-
-func (s *P2PMessageService) In() chan<- protocols.Message {
-	return s.in
 }
 
 // Close closes the P2PMessageService

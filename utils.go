@@ -87,10 +87,10 @@ func setupChain(me PeerInfo, ctx context.Context, client *sync.DefaultClient) *c
 
 	chain := chainservice.NewMockChainWithTransactionListener(transListener)
 	transTopic := sync.NewTopic("chain-transaction", &PeerTransaction{})
-	go shareTransactions(transListener, ctx, client, transTopic, &chain, me.Address)
-	go replayTransactions(ctx, client, transTopic, &chain, me.Address)
+	go shareTransactions(transListener, ctx, client, transTopic, chain, me.Address)
+	go replayTransactions(ctx, client, transTopic, chain, me.Address)
 
-	return &chain
+	return chain
 }
 
 // createNitroClient starts a nitro client using the given unique sequence number and private key.
