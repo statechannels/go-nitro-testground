@@ -8,8 +8,6 @@ import (
 	"github.com/testground/sdk-go/run"
 )
 
-
-
 // PeerTransaction is a a transaction that also indicates which peer sent it.
 // This is used to replay a transaction on our local chain instance
 type PeerTransaction struct {
@@ -22,7 +20,7 @@ const PORT_START = 7000
 
 func main() {
 	run.InvokeMap(map[string]interface{}{
-		"create-ledger":  createLedgerTest,
-		"create-virtual": createVirtualTest,
+		"create-ledger":   createLedgerTest,
+		"virtual-payment": createVirtualPaymentTest,
 	})
 }

@@ -3,14 +3,16 @@ package main
 import (
 	"context"
 	"errors"
+	"math/big"
 	"time"
 
+	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
 
-func createVirtualTest(runEnv *runtime.RunEnv) error {
+func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
 	client := sync.MustBoundClient(ctx, runEnv)
@@ -80,7 +82,7 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 	ms.DialPeers()
 	client.MustSignalEntry(ctx, "msDialed")
 	<-client.MustBarrier(ctx, sync.State("msDialed"), runEnv.TestInstanceCount).C
-
+	// ledgerIds := []types.Destination{}
 	if !me.IsHub {
 		// Create ledger channels between me and any hubs.
 		createLedgerChannels(me.PeerInfo, runEnv, nitroClient, filterPeersByHub(peers, true))
@@ -94,18 +96,45 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 	// If we're not the hub we create numOfChannels with a random peer/hub.
 	numOfChannels := runEnv.IntParam("numOfChannels")
 	cm := NewCompletionMonitor(nitroClient, *runEnv)
+
+	toClose := []types.Destination{}
 	if !me.IsHub {
 		for i := 0; i < numOfChannels; i++ {
 
 			hubToUse := selectRandomPeer(filterPeersByHub(peers, true))
 			peer := selectRandomPeer(filterPeersByHub(peers, false))
-			id := createVirtualChannel(me.Address, hubToUse, peer, nitroClient)
-			cm.WatchObjective(id)
+			res := createVirtualChannel(me.Address, hubToUse, peer, nitroClient)
+			cm.WatchObjective(res.Id)
+			toClose = append(toClose, res.ChannelId)
 		}
 
 	}
 	cm.WaitForObjectivesToComplete()
 	runEnv.RecordMessage("All virtual channel objectives completed")
+
+	client.MustSignalEntry(ctx, sync.State("virtual-creation-done"))
+	<-client.MustBarrier(ctx, sync.State("virtual-creation-done"), runEnv.TestInstanceCount).C
+
+	closeCm := NewCompletionMonitor(nitroClient, *runEnv)
+	for _, ch := range toClose {
+		id := nitroClient.CloseVirtualChannel(ch, big.NewInt(1))
+		closeCm.WatchObjective(id)
+	}
+
+	closeCm.WaitForObjectivesToComplete()
+	runEnv.RecordMessage("All virtual channel defunded")
+
+	client.MustSignalEntry(ctx, sync.State("virtual-defund-done"))
+	<-client.MustBarrier(ctx, sync.State("virtual-defund-done"), runEnv.TestInstanceCount).C
+
+	// TODO: Ledger funding currently seems to fail:
+	// closeLedgerCm := NewCompletionMonitor(nitroClient, *runEnv)
+	// for _, ch := range ledgerIds {
+	// 	id := nitroClient.CloseDirectChannel(ch)
+	// 	closeLedgerCm.WatchObjective(id)
+	// }
+	// closeLedgerCm.WaitForObjectivesToComplete()
+	// runEnv.RecordMessage("All ledger channels defunded")
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runEnv.TestInstanceCount).C
