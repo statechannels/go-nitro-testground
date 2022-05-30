@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"time"
 
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
@@ -17,12 +18,39 @@ func createVirtualTest(runEnv *runtime.RunEnv) error {
 
 	// instantiate a network client amd wait for it to be ready.
 	net := network.NewClient(client, runEnv)
+
 	runEnv.RecordMessage("waiting for network initialization")
 	net.MustWaitNetworkInitialized(ctx)
-	fmt.Printf("sidecar: %v\n", runEnv.TestSidecar)
+	networkJitterMS, networkLatencyMS := runEnv.IntParam("networkJitterMS"), runEnv.IntParam("networkLatencyMS")
+	if !runEnv.TestSidecar && (networkJitterMS > 0 || networkLatencyMS > 0) {
+		err := errors.New("can only apply network jitter/latency when running with docker")
+		return err
+
+	} else if runEnv.TestSidecar {
+
+		config := network.Config{
+			// Control the "default" network. At the moment, this is the only network.
+			Network: "default",
+			Enable:  true,
+
+			// Set the traffic shaping characteristics.
+			Default: network.LinkShape{
+				Latency: time.Duration(networkLatencyMS) * time.Millisecond,
+				Jitter:  time.Duration(networkJitterMS) * time.Millisecond,
+			},
+
+			// Set what state the sidecar should signal back to you when it's done.
+			CallbackState: "network-configured",
+		}
+		net.MustConfigureNetwork(ctx, &config)
+
+	}
+
 	// This generates a unqiue sequence number for this test instance.
 	// We use seq to determine the role we play and the port for our message service.
-	seq := client.MustSignalEntry(ctx, sync.State("init"))
+	seq := client.MustSignalEntry(ctx, sync.State("network configured"))
+	<-client.MustBarrier(ctx, sync.State("network configured"), runEnv.TestInstanceCount).C
+
 	numOfHubs := int64(runEnv.IntParam("numOfHubs"))
 
 	ip, err := net.GetDataNetworkIP()
