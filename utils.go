@@ -110,7 +110,7 @@ func createNitroClient(me MyInfo, peers map[types.Address]PeerInfo, chain *chain
 
 }
 
-func createLedgerChannel(myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
+func createLedgerChannel(myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) directfund.ObjectiveResponse {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
@@ -134,7 +134,7 @@ func createLedgerChannel(myAddress types.Address, counterparty types.Address, ni
 	}
 	r := nitroClient.CreateDirectChannel(request)
 
-	return r.Id
+	return r
 
 }
 
@@ -157,7 +157,7 @@ func filterPeersByHub(peers map[types.Address]PeerInfo, shouldBeHub bool) []Peer
 	return filteredPeers
 }
 
-func createVirtualChannel(myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) protocols.ObjectiveId {
+func createVirtualChannel(myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) virtualfund.ObjectiveResponse {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
@@ -181,7 +181,7 @@ func createVirtualChannel(myAddress types.Address, intermediary types.Address, c
 		Nonce:             rand.Int63(),
 	}
 	r := nitroClient.CreateVirtualChannel(request)
-	return r.Id
+	return r
 
 }
 

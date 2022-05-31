@@ -4,6 +4,7 @@ import (
 	"context"
 
 	nitroclient "github.com/statechannels/go-nitro/client"
+	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
@@ -61,17 +62,19 @@ func createLedgerTest(runEnv *runtime.RunEnv) error {
 }
 
 // createLedgerChannels creates a ledger channel between me and every peer in filtered peers
-func createLedgerChannels(me PeerInfo, runenv *runtime.RunEnv, nc *nitroclient.Client, filteredPeers []PeerInfo) {
+func createLedgerChannels(me PeerInfo, runenv *runtime.RunEnv, nc *nitroclient.Client, filteredPeers []PeerInfo) []types.Destination {
 
 	cm := NewCompletionMonitor(nc, *runenv)
-
+	ledgerIds := []types.Destination{}
 	for _, p := range filteredPeers {
 
-		id := createLedgerChannel(me.Address, p.Address, nc)
-		cm.WatchObjective(id)
+		r := createLedgerChannel(me.Address, p.Address, nc)
+		cm.WatchObjective(r.Id)
+		ledgerIds = append(ledgerIds, r.ChannelId)
 
 	}
 
 	cm.WaitForObjectivesToComplete()
 
+	return ledgerIds
 }
