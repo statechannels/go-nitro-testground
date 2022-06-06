@@ -13,6 +13,7 @@ import (
 )
 
 func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
+	runEnv.D().SetFrequency(500 * time.Millisecond)
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
 	client := sync.MustBoundClient(ctx, runEnv)
@@ -82,10 +83,10 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	ms.DialPeers()
 	client.MustSignalEntry(ctx, "msDialed")
 	<-client.MustBarrier(ctx, sync.State("msDialed"), runEnv.TestInstanceCount).C
-	ledgerIds := []types.Destination{}
+
 	if !me.IsHub {
 		// Create ledger channels between me and any hubs.
-		ledgerIds = append(ledgerIds, createLedgerChannels(me.PeerInfo, runEnv, nitroClient, filterPeersByHub(peers, true))...)
+		createLedgerChannels(me.PeerInfo, runEnv, nitroClient, filterPeersByHub(peers, true))
 	}
 	runEnv.RecordMessage("All ledger channel objectives completed")
 
@@ -126,14 +127,6 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 	client.MustSignalEntry(ctx, sync.State("virtual-defund-done"))
 	<-client.MustBarrier(ctx, sync.State("virtual-defund-done"), runEnv.TestInstanceCount).C
-
-	closeLedgerCm := NewCompletionMonitor(nitroClient, *runEnv)
-	for _, ch := range ledgerIds {
-		id := nitroClient.CloseDirectChannel(ch)
-		closeLedgerCm.WatchObjective(id)
-	}
-	closeLedgerCm.WaitForObjectivesToComplete()
-	runEnv.RecordMessage("All ledger channels defunded")
 
 	client.MustSignalEntry(ctx, sync.State("done"))
 	<-client.MustBarrier(ctx, sync.State("done"), runEnv.TestInstanceCount).C
