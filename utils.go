@@ -14,6 +14,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitroclient "github.com/statechannels/go-nitro/client"
+	"github.com/statechannels/go-nitro/client/engine"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	"github.com/statechannels/go-nitro/client/engine/store"
 	"github.com/statechannels/go-nitro/protocols"
@@ -73,7 +74,7 @@ func replayTransactions(ctx context.Context, client *sync.DefaultClient, topic *
 		for t := range peerTransactions {
 			if t.From != myAddress {
 
-				chain.In() <- t.Transaction
+				chain.SendTransaction(t.Transaction)
 
 			}
 		}
@@ -100,12 +101,11 @@ func createNitroClient(me MyInfo, peers map[types.Address]PeerInfo, chain *chain
 
 	ms := NewP2PMessageService(me, peers, metrics)
 
-	chainservice := chainservice.NewSimpleChainService(chain, me.Address)
 	// TODO: Figure out good place to log this
 	filename := filepath.Join("../artifacts", fmt.Sprintf("testground-%s.log", me.Address))
 	logDestination, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
 
-	client := nitroclient.New(ms, chainservice, store, logDestination)
+	client := nitroclient.New(ms, chain, store, logDestination, &engine.PermissivePolicy{}, metrics)
 	return &client, ms
 
 }

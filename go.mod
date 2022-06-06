@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/libp2p/go-libp2p-core v0.16.1
 	github.com/multiformats/go-multiaddr v0.5.0
-	github.com/statechannels/go-nitro v0.0.0-20220531180504-0d65de578595
+	github.com/statechannels/go-nitro v0.0.0-20220606171616-c2dbe1eb3a91
 )
 
 require (
