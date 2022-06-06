@@ -206,3 +206,21 @@ func generateMe(seq int64, isHub bool, ipAddress string) MyInfo {
 	myPeerInfo := PeerInfo{Id: id, Address: address, IsHub: isHub, Port: port, IpAddress: ipAddress}
 	return MyInfo{myPeerInfo, *privateKey, messageKey}
 }
+
+// createLedgerChannels creates a ledger channel between me and every peer in filtered peers
+func createLedgerChannels(me PeerInfo, runenv *runtime.RunEnv, nc *nitroclient.Client, filteredPeers []PeerInfo) []types.Destination {
+
+	cm := NewCompletionMonitor(nc, *runenv)
+	ledgerIds := []types.Destination{}
+	for _, p := range filteredPeers {
+
+		r := createLedgerChannel(me.Address, p.Address, nc)
+		cm.WatchObjective(r.Id)
+		ledgerIds = append(ledgerIds, r.ChannelId)
+
+	}
+
+	cm.WaitForObjectivesToComplete()
+
+	return ledgerIds
+}

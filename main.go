@@ -20,7 +20,6 @@ const PORT_START = 7000
 
 func main() {
 	run.InvokeMap(map[string]interface{}{
-		"create-ledger":   createLedgerTest,
 		"virtual-payment": createVirtualPaymentTest,
 	})
 }
