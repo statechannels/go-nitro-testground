@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"math/big"
+	"math/rand"
 	"time"
 
-	"github.com/statechannels/go-nitro/types"
+	"github.com/statechannels/go-nitro/protocols"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
@@ -24,7 +25,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 	runEnv.RecordMessage("waiting for network initialization")
 	net.MustWaitNetworkInitialized(ctx)
-	networkJitterMS, networkLatencyMS := runEnv.IntParam("networkJitterMS"), runEnv.IntParam("networkLatencyMS")
+	networkJitterMS, networkLatencyMS := runEnv.IntParam("networkJitter"), runEnv.IntParam("networkLatency")
 	if !runEnv.TestSidecar && (networkJitterMS > 0 || networkLatencyMS > 0) {
 		err := errors.New("can only apply network jitter/latency when running with docker")
 		return err
@@ -51,8 +52,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 	// This generates a unqiue sequence number for this test instance.
 	// We use seq to determine the role we play and the port for our message service.
-	seq := client.MustSignalEntry(ctx, sync.State("network configured"))
-	<-client.MustBarrier(ctx, sync.State("network configured"), runEnv.TestInstanceCount).C
+	seq := client.MustSignalAndWait(ctx, sync.State("network configured"), runEnv.TestInstanceCount)
 
 	numOfHubs := int64(runEnv.IntParam("numOfHubs"))
 
@@ -64,8 +64,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 	runEnv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
-	client.MustSignalEntry(ctx, "peerInfoGenerated")
-	<-client.MustBarrier(ctx, sync.State("peerInfoGenerated"), runEnv.TestInstanceCount).C
+	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
 
 	// Broadcasts our info and get peer info from all other instances.
 	peers := getPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
@@ -77,59 +76,56 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	runEnv.RecordMessage("nitro client created")
 
 	// We wait until every instance has successfully created their client
-	client.MustSignalEntry(ctx, "clientReady")
-	<-client.MustBarrier(ctx, sync.State("clientReady"), runEnv.TestInstanceCount).C
+	client.MustSignalAndWait(ctx, "clientReady", runEnv.TestInstanceCount)
 
 	ms.DialPeers()
-	client.MustSignalEntry(ctx, "msDialed")
-	<-client.MustBarrier(ctx, sync.State("msDialed"), runEnv.TestInstanceCount).C
+	client.MustSignalAndWait(ctx, "msDialed", runEnv.TestInstanceCount)
 
-	if !me.IsHub {
-		// Create ledger channels between me and any hubs.
-		createLedgerChannels(me.PeerInfo, runEnv, nitroClient, filterPeersByHub(peers, true))
-	}
-	runEnv.RecordMessage("All ledger channel objectives completed")
+	cm := NewCompletionMonitor(nitroClient, runEnv)
+	defer cm.Close()
 
-	// We wait until every instance has finished up with ledger channel creation
-	client.MustSignalEntry(ctx, sync.State("ledgerDone"))
-	<-client.MustBarrier(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount).C
+	if me.IsHub {
+		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
+	} else {
 
-	// If we're not the hub we create numOfChannels with a random peer/hub.
-	numOfChannels := runEnv.IntParam("numOfChannels")
-	cm := NewCompletionMonitor(nitroClient, *runEnv)
-
-	toClose := []types.Destination{}
-	if !me.IsHub {
-		for i := 0; i < numOfChannels; i++ {
-
-			hubToUse := selectRandomPeer(filterPeersByHub(peers, true))
-			peer := selectRandomPeer(filterPeersByHub(peers, false))
-			res := createVirtualChannel(me.Address, hubToUse, peer, nitroClient)
-			cm.WatchObjective(res.Id)
-			toClose = append(toClose, res.ChannelId)
+		// Create ledger channels with all the hubs
+		ledgerIds := []protocols.ObjectiveId{}
+		hubs := filterPeersByHub(peers, true)
+		for _, h := range hubs {
+			r := createLedgerChannel(me.Address, h.Address, nitroClient)
+			runEnv.RecordMessage("Creating ledger channel %s with hub %s", abbreviate(r.ChannelId), abbreviate((h.Address)))
+			ledgerIds = append(ledgerIds, r.Id)
 		}
+		cm.WaitForObjectivesToComplete(ledgerIds)
+
+		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
+
+		createVirtualPaymentsJob := func() {
+			randomHub := selectRandomPeer(filterPeersByHub(peers, true))
+			randomPayee := selectRandomPeer(filterPeersByHub(peers, false))
+
+			r := createVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
+			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
+			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", abbreviate(r.ChannelId), abbreviate(randomPayee), abbreviate(randomHub))
+			sleepDuration := time.Duration(rand.Int63n(int64(time.Second * 1)))
+			runEnv.RecordMessage("Sleeping %v to simulate payment exchanges for %s", sleepDuration, abbreviate(r.ChannelId))
+
+			totalPaymentSize := big.NewInt(rand.Int63n(10))
+			id := nitroClient.CloseVirtualChannel(r.ChannelId, totalPaymentSize)
+			runEnv.RecordMessage("Closing %s with payment of %d to %s", abbreviate(r.ChannelId), totalPaymentSize, abbreviate(randomPayee))
+
+			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{id})
+
+		}
+		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
+		jobCount := int64(runEnv.IntParam("virtualChannelJobs"))
+
+		RunJob(createVirtualPaymentsJob, testDuration, jobCount)
 
 	}
-	cm.WaitForObjectivesToComplete()
-	runEnv.RecordMessage("All virtual channel objectives completed")
 
-	client.MustSignalEntry(ctx, sync.State("virtual-creation-done"))
-	<-client.MustBarrier(ctx, sync.State("virtual-creation-done"), runEnv.TestInstanceCount).C
-
-	closeCm := NewCompletionMonitor(nitroClient, *runEnv)
-	for _, ch := range toClose {
-		id := nitroClient.CloseVirtualChannel(ch, big.NewInt(1))
-		closeCm.WatchObjective(id)
-	}
-
-	closeCm.WaitForObjectivesToComplete()
-	runEnv.RecordMessage("All virtual channel defunded")
-
-	client.MustSignalEntry(ctx, sync.State("virtual-defund-done"))
-	<-client.MustBarrier(ctx, sync.State("virtual-defund-done"), runEnv.TestInstanceCount).C
-
-	client.MustSignalEntry(ctx, sync.State("done"))
-	<-client.MustBarrier(ctx, sync.State("done"), runEnv.TestInstanceCount).C
+	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
 
 	return nil
+
 }

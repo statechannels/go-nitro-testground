@@ -16,11 +16,11 @@ type completionMonitor struct {
 	completed safesync.Map[bool]
 	client    *nitroclient.Client
 	quit      chan struct{}
-	runenv    runtime.RunEnv
+	runenv    *runtime.RunEnv
 }
 
 // NewCompletionMonitor creates a new completion monitor
-func NewCompletionMonitor(client *nitroclient.Client, runenv runtime.RunEnv) *completionMonitor {
+func NewCompletionMonitor(client *nitroclient.Client, runenv *runtime.RunEnv) *completionMonitor {
 
 	completed := safesync.Map[bool]{}
 
@@ -39,17 +39,17 @@ func (c *completionMonitor) WatchObjective(id protocols.ObjectiveId) {
 	c.completed.Store(string(id), false)
 }
 
-func (c *completionMonitor) done() bool {
-	allComplete := true
-	c.completed.Range(func(id string, isComplete bool) bool {
+// checks whether the given objectives are complete
+func (c *completionMonitor) done(ids []protocols.ObjectiveId) bool {
+
+	for _, id := range ids {
+		isComplete, _ := c.completed.Load(string(id))
 		if !isComplete {
-			allComplete = false
 			return false
 		}
+	}
+	return true
 
-		return true
-	})
-	return allComplete
 }
 
 // watch runs in a gofunc and listens to the CompletedObjectives chan
@@ -57,8 +57,6 @@ func (c *completionMonitor) watch() {
 	for {
 		select {
 		case id := <-c.client.CompletedObjectives():
-			c.runenv.D().Counter("completed-objectives").Inc(1)
-			c.runenv.RecordMessage("objective complete %s", id)
 			c.completed.Store(string(id), true)
 
 		case <-c.quit:
@@ -68,13 +66,18 @@ func (c *completionMonitor) watch() {
 }
 
 // WaitForObjectivesToComplete blocks until all objectives are completed
-func (c *completionMonitor) WaitForObjectivesToComplete() {
+func (c *completionMonitor) WaitForObjectivesToComplete(ids []protocols.ObjectiveId) {
 	for {
 
-		if c.done() {
-			close(c.quit)
+		if c.done(ids) {
+
 			break
 		}
 		time.Sleep(SLEEP_TIME)
 	}
+}
+
+// Close stops the completion monitor from listening to the CompletedObjectives chan
+func (c *completionMonitor) Close() {
+	close(c.quit)
 }
