@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	s "sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -115,11 +117,11 @@ func createLedgerChannel(myAddress types.Address, counterparty types.Address, ni
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
 				Destination: types.AddressToDestination(myAddress),
-				Amount:      big.NewInt(1000),
+				Amount:      big.NewInt(1_000_000_000),
 			},
 			outcome.Allocation{
 				Destination: types.AddressToDestination(counterparty),
-				Amount:      big.NewInt(1000),
+				Amount:      big.NewInt(1_000_000_000),
 			},
 		},
 	}}
@@ -207,20 +209,38 @@ func generateMe(seq int64, isHub bool, ipAddress string) MyInfo {
 	return MyInfo{myPeerInfo, *privateKey, messageKey}
 }
 
-// createLedgerChannels creates a ledger channel between me and every peer in filtered peers
-func createLedgerChannels(me PeerInfo, runenv *runtime.RunEnv, nc *nitroclient.Client, filteredPeers []PeerInfo) []types.Destination {
+// RunJob constantly runs some job function for the given duration.
+// It will spawn a new goroutine calling the job function until the amount
+// of concurrently running jobs is concurrencyTarget.
+func RunJob(job func(), duration time.Duration, concurrencyTarget int64) {
+	// This how long we wait between checking if we can start another job.
+	waitDuration := time.Duration(50 * time.Millisecond)
 
-	cm := NewCompletionMonitor(nc, *runenv)
-	ledgerIds := []types.Destination{}
-	for _, p := range filteredPeers {
+	jobCount := int64(0)
+	startTime := time.Now()
+	wg := s.WaitGroup{}
 
-		r := createLedgerChannel(me.Address, p.Address, nc)
-		cm.WatchObjective(r.Id)
-		ledgerIds = append(ledgerIds, r.ChannelId)
+	for time.Since(startTime) < duration {
+		time.Sleep(waitDuration)
 
+		// Check if we're below our concurrency target
+		if jobCount < concurrencyTarget {
+			jobCount++
+			wg.Add(1)
+
+			// Start the job in a go routine
+			go func() {
+				job()
+				atomic.AddInt64(&jobCount, -1)
+				wg.Done()
+
+			}()
+
+		}
 	}
+	wg.Wait()
+}
 
-	cm.WaitForObjectivesToComplete()
-
-	return ledgerIds
+func abbreviate(s fmt.Stringer) string {
+	return s.String()[0:8] + ".."
 }
