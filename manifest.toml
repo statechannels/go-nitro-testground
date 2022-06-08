@@ -33,5 +33,5 @@ name = "virtual-payment"
 networkJitter = {type = "int", unit = "milliseconds", default = 0}
 networkLatency = {type = "int", unit = "milliseconds", default = 0}
 numOfHubs = {type = "int", default = 1}
-paymentTestDuration = {type = "int", default = 30, unit = "seconds"}
-virtualChannelJobs = {type = "int", desc = "The number of concurrent virtual channels a peer should attempt to maintain", default = 2}
+paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
+virtualChannelJobs = {type = "int", desc = "The number of concurrent virtual channels a peer should attempt to maintain", default = 1}
