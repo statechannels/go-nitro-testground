@@ -14,7 +14,7 @@ import (
 )
 
 func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
-	// runEnv.D().SetFrequency(500 * time.Millisecond)
+
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
 	client := sync.MustBoundClient(ctx, runEnv)
