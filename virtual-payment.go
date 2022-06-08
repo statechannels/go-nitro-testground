@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"math/big"
 	"math/rand"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 )
 
 func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
-	runEnv.D().SetFrequency(500 * time.Millisecond)
+	// runEnv.D().SetFrequency(500 * time.Millisecond)
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
 	client := sync.MustBoundClient(ctx, runEnv)
@@ -110,11 +109,11 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 			sleepDuration := time.Duration(rand.Int63n(int64(time.Second * 1)))
 			runEnv.RecordMessage("Sleeping %v to simulate payment exchanges for %s", sleepDuration, abbreviate(r.ChannelId))
 
-			totalPaymentSize := big.NewInt(rand.Int63n(10))
-			id := nitroClient.CloseVirtualChannel(r.ChannelId, totalPaymentSize)
-			runEnv.RecordMessage("Closing %s with payment of %d to %s", abbreviate(r.ChannelId), totalPaymentSize, abbreviate(randomPayee))
-
-			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{id})
+			// TODO: DISABLED UNTIL RESOLVED: https://github.com/statechannels/go-nitro/issues/744
+			// totalPaymentSize := big.NewInt(rand.Int63n(10))
+			// id := nitroClient.CloseVirtualChannel(r.ChannelId, totalPaymentSize)
+			// runEnv.RecordMessage("Closing %s with payment of %d to %s", abbreviate(r.ChannelId), totalPaymentSize, abbreviate(randomPayee))
+			// cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{id})
 
 		}
 		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
