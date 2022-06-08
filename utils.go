@@ -164,11 +164,11 @@ func createVirtualChannel(myAddress types.Address, intermediary types.Address, c
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
 				Destination: types.AddressToDestination(myAddress),
-				Amount:      big.NewInt(1),
+				Amount:      big.NewInt(100),
 			},
 			outcome.Allocation{
 				Destination: types.AddressToDestination(counterparty),
-				Amount:      big.NewInt(1),
+				Amount:      big.NewInt(100),
 			},
 		},
 	}}
