@@ -117,11 +117,11 @@ func createLedgerChannel(myAddress types.Address, counterparty types.Address, ni
 		Allocations: outcome.Allocations{
 			outcome.Allocation{
 				Destination: types.AddressToDestination(myAddress),
-				Amount:      big.NewInt(1_000_000_000),
+				Amount:      big.NewInt(1_000_000_000_000_000_000),
 			},
 			outcome.Allocation{
 				Destination: types.AddressToDestination(counterparty),
-				Amount:      big.NewInt(1_000_000_000),
+				Amount:      big.NewInt(1_000_000_000_000_000_000),
 			},
 		},
 	}}
