@@ -19,7 +19,6 @@ import (
 	"github.com/statechannels/go-nitro/client/engine"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	"github.com/statechannels/go-nitro/client/engine/store"
-	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/directfund"
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
@@ -50,50 +49,6 @@ func getPeers(me PeerInfo, ctx context.Context, client sync.Client, instances in
 		}
 	}
 	return peers
-}
-
-func shareTransactions(listener chan protocols.ChainTransaction, ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
-	// TODO: Close this gracefully?
-	go func() {
-		for trans := range listener {
-
-			_, err := client.Publish(ctx, topic, &PeerTransaction{From: myAddress, Transaction: trans})
-			if err != nil {
-				// TODO: This gofunc should get aborted instead of just swallowing an error
-				return
-			}
-		}
-	}()
-}
-
-// replayTransactions listens for transactions that occured on other client's chains and replays them on ours
-func replayTransactions(ctx context.Context, client *sync.DefaultClient, topic *sync.Topic, chain *chainservice.MockChain, myAddress types.Address) {
-	// TODO: Close this gracefully?
-	go func() {
-		peerTransactions := make(chan *PeerTransaction)
-		client.Subscribe(ctx, topic, peerTransactions)
-
-		for t := range peerTransactions {
-			if t.From != myAddress {
-
-				chain.SendTransaction(t.Transaction)
-
-			}
-		}
-	}()
-}
-
-// setupChain creates a mock chain instance and will share transactions with other MockChains using a sync.Topic
-func setupChain(me PeerInfo, ctx context.Context, client *sync.DefaultClient) *chainservice.MockChain {
-
-	transListener := make(chan protocols.ChainTransaction, 1000)
-
-	chain := chainservice.NewMockChainWithTransactionListener(transListener)
-	transTopic := sync.NewTopic("chain-transaction", &PeerTransaction{})
-	go shareTransactions(transListener, ctx, client, transTopic, chain, me.Address)
-	go replayTransactions(ctx, client, transTopic, chain, me.Address)
-
-	return chain
 }
 
 // createNitroClient starts a nitro client using the given unique sequence number and private key.

@@ -67,10 +67,11 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 	// Broadcasts our info and get peer info from all other instances.
 	peers := getPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
-	// Set up our mock chain that communicates with our instances using a sync.Topic
-	chain := setupChain(me.PeerInfo, ctx, client)
 
-	nitroClient, ms := createNitroClient(me, peers, chain, runEnv.D())
+	chainSyncer := NewChainSyncer(me, client, ctx)
+	defer chainSyncer.Close()
+
+	nitroClient, ms := createNitroClient(me, peers, chainSyncer.MockChain(), runEnv.D())
 	defer ms.Close()
 	runEnv.RecordMessage("nitro client created")
 

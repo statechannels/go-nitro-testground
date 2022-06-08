@@ -58,7 +58,6 @@ func (c *completionMonitor) watch() {
 		select {
 		case id := <-c.client.CompletedObjectives():
 			c.completed.Store(string(id), true)
-
 		case <-c.quit:
 			return
 		}

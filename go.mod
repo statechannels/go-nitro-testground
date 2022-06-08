@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/libp2p/go-libp2p-core v0.16.1
+	github.com/mitchellh/hashstructure v1.1.0
 	github.com/multiformats/go-multiaddr v0.5.0
 	github.com/statechannels/go-nitro v0.0.0-20220606205822-60376b819252
 )
