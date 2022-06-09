@@ -108,10 +108,12 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 			r := createVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
 			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
 			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", abbreviate(r.ChannelId), abbreviate(randomPayee), abbreviate(randomHub))
-			sleepDuration := time.Duration(rand.Int63n(int64(time.Second * 1)))
+			// We always want to wait a little bit to avoid https://github.com/statechannels/go-nitro/issues/744
+			minSleep := 1 * time.Second
+			sleepDuration := time.Duration(rand.Int63n(int64(time.Second*1))) + minSleep
 			runEnv.RecordMessage("Sleeping %v to simulate payment exchanges for %s", sleepDuration, abbreviate(r.ChannelId))
+			time.Sleep(sleepDuration)
 
-			// TODO: I've renabled this but it might flicker: https://github.com/statechannels/go-nitro/issues/744
 			totalPaymentSize := big.NewInt(rand.Int63n(10))
 			id := nitroClient.CloseVirtualChannel(r.ChannelId, totalPaymentSize)
 			runEnv.RecordMessage("Closing %s with payment of %d to %s", abbreviate(r.ChannelId), totalPaymentSize, abbreviate(randomPayee))
@@ -119,9 +121,9 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 		}
 		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
-		// jobCount := int64(runEnv.IntParam("virtualChannelJobs"))
+		jobCount := int64(runEnv.IntParam("virtualChannelJobs"))
 
-		RunJob(createVirtualPaymentsJob, testDuration, 1)
+		RunJob(createVirtualPaymentsJob, testDuration, jobCount)
 
 	}
 
