@@ -1,11 +1,7 @@
 # Go Nitro Testground Test-plan
 This implements a test plan for testground to run various go-nitro integration tests.
 
-There are currently two test cases:
-1. [create-virtual](./create-virtual.go): A scenario where multiple virtual channels are created with a configurable amount of peers and hubs.
-2. [create-ledger](./create-ledger.go): A scenario which creates directly funded ledger channels.
-
-FYI: The `go-nitro-test-plan` module depends on a specific [branch](https://github.com/statechannels/go-nitro/tree/only-client-close) of `go-nitro`.
+There is currently only one test case: [create-ledger](./create-ledger.go): A scenario which creates directly funded ledger channels.
 
 
 ## Getting Started
@@ -32,13 +28,15 @@ testground plan import --from ../go-nitro-test-plan
 ```
 Run the test:
 ```sh
-testground run s -p=go-nitro-test-plan -t=create-virtual -b=exec:go -r=local:exec -tp=numOfChannels=4 -tp=numOfHubs=2 -i=5
+ testground run s -p=go-nitro-test-plan -t=virtual-payment -b=exec:go -r=local:exec -tp=numOfHubs=2 -i=5 -tp=paymentTestDuration=10 -tp=concurrentPaymentJobs=2
 ```
-This requests a run of the `create-virtual` test-case with:
+This requests a run of the `virtual-payment` test-case with:
 - `-i=5` 5 instances with their own nitro client
 - `-tp=numOfHubs=2` 2 instances will play the role of hub and act only as a intermediary 
-- `-tp=numOfChannels=4` each non-hub instance will create 4 virtual channels with randomly selected hub and peer
+- `-tp=paymentTestDuration=10` The payment test will run for 10 seconds.
+- `-tp=concurrentPaymentJobs=2` Each non-hub will run two payment jobs.
 - `-b=exec:go` compile locally on this machine
 - `-r=local:exec` run the test locally on this machine
+
 
 You should see console output in the console running `testground daemon`.

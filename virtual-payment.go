@@ -121,7 +121,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 		}
 		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
-		jobCount := int64(runEnv.IntParam("virtualChannelJobs"))
+		jobCount := int64(runEnv.IntParam("concurrentPaymentJobs"))
 
 		RunJob(createVirtualPaymentsJob, testDuration, jobCount)
 
