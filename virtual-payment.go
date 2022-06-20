@@ -3,18 +3,20 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 	"math/rand"
 	"time"
 
 	"github.com/statechannels/go-nitro/protocols"
+	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
 
 func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
-
+	runEnv.D().SetFrequency(1 * time.Second)
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
 	client := sync.MustBoundClient(ctx, runEnv)
@@ -50,6 +52,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 	}
 
+	runEnv.RecordMessage("network configured")
 	// This generates a unqiue sequence number for this test instance.
 	// We use seq to determine the role we play and the port for our message service.
 	seq := client.MustSignalAndWait(ctx, sync.State("network configured"), runEnv.TestInstanceCount)
@@ -101,12 +104,21 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 
+		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
+		jobCount := int64(runEnv.IntParam("concurrentPaymentJobs"))
+
 		createVirtualPaymentsJob := func() {
 			randomHub := selectRandomPeer(filterPeersByHub(peers, true))
 			randomPayee := selectRandomPeer(filterPeersByHub(peers, false))
+			var r virtualfund.ObjectiveResponse
 
-			r := createVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
-			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
+			runDetails := fmt.Sprintf("me=%s,hubs=%d,clients=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
+				me.Address, numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
+
+			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
+				r = createVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
+				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
+			})
 			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", abbreviate(r.ChannelId), abbreviate(randomPayee), abbreviate(randomHub))
 			// We always want to wait a little bit to avoid https://github.com/statechannels/go-nitro/issues/744
 			minSleep := 1 * time.Second
@@ -120,8 +132,6 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{id})
 
 		}
-		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
-		jobCount := int64(runEnv.IntParam("concurrentPaymentJobs"))
 
 		RunJob(createVirtualPaymentsJob, testDuration, jobCount)
 
