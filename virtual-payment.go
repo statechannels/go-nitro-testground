@@ -112,8 +112,8 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 			randomPayee := selectRandomPeer(filterPeersByHub(peers, false))
 			var r virtualfund.ObjectiveResponse
 
-			runDetails := fmt.Sprintf("me=%s,hubs=%d,clients=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
-				me.Address, numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
+			runDetails := fmt.Sprintf("me=%s,amHub=%v,hubs=%d,clients=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
+				me.Address, me.IsHub, numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
 
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
 				r = createVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
