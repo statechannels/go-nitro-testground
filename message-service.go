@@ -107,7 +107,8 @@ func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo, metrics *
 				// Create a buffer stream for non blocking read and write.
 				raw, err := reader.ReadString(DELIMETER)
 				// TODO: If the stream has been closed we just bail for now
-				if errors.Is(err, io.EOF) || (errors.Is(err, errors.New("stream reset"))) {
+				// TODO: Properly check for and handle stream reset error
+				if errors.Is(err, io.EOF) || fmt.Sprintf("%s", err) == "stream reset" {
 					stream.Close()
 					return
 				}
