@@ -1,0 +1,893 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "iteration": 1655785402658,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "jEpD8Z3nk"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "content": "<table>\n<thead>\n  <tr>\n    <th></th>\n    <th></th>\n  </tr>\n</thead>\n<tbody>\n  <tr>\n    <td>Run Id</td>\n    <td>${runId}</td>\n  </tr>\n  <tr>\n    <td>Concurrent payment target</td>\n    <td>${jobCount}</td>\n  </tr>\n  <tr>\n    <td>Target duration</td>\n    <td>${testDuration}</td>\n  </tr>\n  <tr>\n    <td>Number of clients</td>\n    <td>${clients}</td>\n  </tr>\n    <tr>\n    <td>Number of hubs</td>\n    <td>${hubs}</td>\n  </tr>\n      <tr>\n    <td>Latency (ms)</td>\n    <td>${latency}</td>\n  </tr>\n      <tr>\n    <td>Jitter (ms)</td>\n    <td>${jitter}</td>\n  </tr>\n</tbody>\n</table>",
+        "mode": "html"
+      },
+      "pluginVersion": "8.5.6",
+      "title": "Run details",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "jEpD8Z3nk"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 100000000,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "jEpD8Z3nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "mean"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            }
+          ]
+        }
+      ],
+      "title": "Mean time to first payment",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "jEpD8Z3nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 9
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Handle API",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "jEpD8Z3nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "linear"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "diagnostics.go-nitro-virtual-payment.handle_api_event.timer",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "Handle API",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "mean"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            }
+          ]
+        },
+        {
+          "alias": "Handle Message",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "jEpD8Z3nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "linear"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "diagnostics.go-nitro-virtual-payment.handle_message.timer",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "Handle Message",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "mean"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            }
+          ]
+        },
+        {
+          "alias": "Crank",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "jEpD8Z3nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "linear"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "diagnostics.go-nitro-virtual-payment.crank.timer",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "Crank",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "mean"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            }
+          ]
+        }
+      ],
+      "title": "Average Function Durations",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "jEpD8Z3nk"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 8,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "jEpD8Z3nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "me"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "linear"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "mean"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            }
+          ]
+        }
+      ],
+      "title": "Mean time to first payment per client",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "jEpD8Z3nk"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 8,
+        "y": 18
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "jEpD8Z3nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "wallet"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "diagnostics.go-nitro-virtual-payment.objective_complete_time.timer",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT mean(\"mean\") FROM \"diagnostics.go-nitro-virtual-payment.objective_complete_time.timer\" WHERE (\"run\" =~ /^$runId$/ AND \"type\" = 'VirtualFund' AND \"wallet\" !~ /^${clientAdds:regex}$/) AND $timeFilter GROUP BY time($__interval), \"wallet\" fill(none)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "mean"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            },
+            {
+              "condition": "AND",
+              "key": "type",
+              "operator": "=",
+              "value": "VirtualFund"
+            },
+            {
+              "condition": "AND",
+              "key": "wallet",
+              "operator": "!~",
+              "value": "/^$clientAdds$/"
+            }
+          ]
+        }
+      ],
+      "title": "Average duration for hub to open virtual channel",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "caouu9nsemvgu0uqjhu0",
+          "value": "caouu9nsemvgu0uqjhu0"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "select  run,count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where $timeFilter",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "runId",
+        "options": [],
+        "query": "select  run,count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where $timeFilter",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "1",
+          "value": "1"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "SELECT concurrentJobs, mean FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run = '$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "jobCount",
+        "options": [],
+        "query": "SELECT concurrentJobs, mean FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run = '$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "2m0s",
+          "value": "2m0s"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "SELECT \"duration\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "testDuration",
+        "options": [],
+        "query": "SELECT \"duration\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "1",
+          "value": "1"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "SELECT \"hubs\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "hubs",
+        "options": [],
+        "query": "SELECT \"hubs\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "4",
+          "value": "4"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "SELECT \"clients\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "clients",
+        "options": [],
+        "query": "SELECT \"clients\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "0",
+          "value": "0"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "SELECT \"jitter\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "jitter",
+        "options": [],
+        "query": "SELECT \"jitter\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "50",
+          "value": "50"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "SELECT \"latency\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "latency",
+        "options": [],
+        "query": "SELECT \"latency\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "allValue": "",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "jEpD8Z3nk"
+        },
+        "definition": "SELECT \"me\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": true,
+        "multi": false,
+        "name": "clientAdds",
+        "options": [],
+        "query": "SELECT \"me\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Time to First Payment",
+  "uid": "5OBBeW37k",
+  "version": 13,
+  "weekStart": ""
+}
