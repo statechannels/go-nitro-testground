@@ -40,3 +40,21 @@ This requests a run of the `virtual-payment` test-case with:
 
 
 You should see console output in the console running `testground daemon`.
+
+## Configuring grafana
+
+Testground will automatically run a docker container for influxDb to record metrics and grafana to create dashboards against those metrics.
+
+At the moment there is some manual configuration to connect grafana to the metrics database:
+
+1. Find the IP of the influxDB container by running the following command:
+    ```shell
+    docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' testground-influxdb
+    ```
+
+2. Go to the [local grafana instance](http://localhost:3000/datasources/new) and add a new **InfluxDb** datasource with the following properties:
+
+    - **Url**: http://192.18.0.6:8086 (where 192.18.0.6 is the IP from step 1)
+    - **Database**: testground
+
+3. Import dashboards into [grafana](http://localhost:3000/dashboard/import) from the [dashboards directory](./dashboards/).
