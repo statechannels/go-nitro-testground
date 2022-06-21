@@ -9,7 +9,7 @@ import (
 	"github.com/testground/sdk-go/runtime"
 )
 
-const SLEEP_TIME = time.Millisecond * 10
+const SLEEP_TIME = time.Microsecond * 500
 
 // completionMonitor is a struct used to watch for objective completion
 type completionMonitor struct {
