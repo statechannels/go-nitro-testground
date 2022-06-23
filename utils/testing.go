@@ -1,11 +1,55 @@
 package utils
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"sync"
+
+	s "sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/testground/sdk-go/network"
+	"github.com/testground/sdk-go/runtime"
+	"github.com/testground/sdk-go/sync"
 )
+
+// ConfigureNetworkClient sets up the network client for a test run.
+// It will check for the network jitter and latency parameters and adjust the network accordingly.
+func ConfigureNetworkClient(ctx context.Context, client sync.Client, runEnv *runtime.RunEnv, networkJitterMS, networkLatencyMS int) (*network.Client, error) {
+	// instantiate a network client amd wait for it to be ready.
+	net := network.NewClient(client, runEnv)
+
+	runEnv.RecordMessage("waiting for network initialization")
+	net.MustWaitNetworkInitialized(ctx)
+
+	if !runEnv.TestSidecar && (networkJitterMS > 0 || networkLatencyMS > 0) {
+		err := errors.New("can only apply network jitter/latency when running with docker")
+		return nil, err
+
+	} else if runEnv.TestSidecar {
+
+		config := network.Config{
+			// Control the "default" network. At the moment, this is the only network.
+			Network: "default",
+			Enable:  true,
+
+			// Set the traffic shaping characteristics.
+			Default: network.LinkShape{
+				Latency: time.Duration(networkLatencyMS) * time.Millisecond,
+				Jitter:  time.Duration(networkJitterMS) * time.Millisecond,
+			},
+
+			// Set what state the sidecar should signal back to you when it's done.
+			CallbackState: "network-configured",
+		}
+		net.MustConfigureNetwork(ctx, &config)
+
+	}
+
+	runEnv.RecordMessage("network configured")
+	return net, nil
+}
 
 // RunJob constantly runs some job function for the given duration.
 // It will spawn a new goroutine calling the job function until the amount
@@ -16,7 +60,7 @@ func RunJob(job func(), duration time.Duration, concurrencyTarget int64) {
 
 	jobCount := int64(0)
 	startTime := time.Now()
-	wg := sync.WaitGroup{}
+	wg := s.WaitGroup{}
 
 	for time.Since(startTime) < duration {
 		time.Sleep(waitDuration)

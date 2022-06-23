@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
-	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
@@ -25,41 +23,16 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	// instantiate a sync service client, binding it to the RunEnv.
 	client := sync.MustBoundClient(ctx, runEnv)
 	defer client.Close()
-
-	// instantiate a network client amd wait for it to be ready.
-	net := network.NewClient(client, runEnv)
-
-	runEnv.RecordMessage("waiting for network initialization")
-	net.MustWaitNetworkInitialized(ctx)
 	networkJitterMS, networkLatencyMS := runEnv.IntParam("networkJitter"), runEnv.IntParam("networkLatency")
-	if !runEnv.TestSidecar && (networkJitterMS > 0 || networkLatencyMS > 0) {
-		err := errors.New("can only apply network jitter/latency when running with docker")
-		return err
-
-	} else if runEnv.TestSidecar {
-
-		config := network.Config{
-			// Control the "default" network. At the moment, this is the only network.
-			Network: "default",
-			Enable:  true,
-
-			// Set the traffic shaping characteristics.
-			Default: network.LinkShape{
-				Latency: time.Duration(networkLatencyMS) * time.Millisecond,
-				Jitter:  time.Duration(networkJitterMS) * time.Millisecond,
-			},
-
-			// Set what state the sidecar should signal back to you when it's done.
-			CallbackState: "network-configured",
-		}
-		net.MustConfigureNetwork(ctx, &config)
-
+	// instantiate a network client amd wait for it to be ready.
+	net, err := utils.ConfigureNetworkClient(ctx, client, runEnv, networkJitterMS, networkLatencyMS)
+	if err != nil {
+		panic(err)
 	}
 
-	runEnv.RecordMessage("network configured")
-	// This generates a unqiue sequence number for this test instance.
+	// This generates a unique sequence number for this test instance.
 	// We use seq to determine the role we play and the port for our message service.
-	seq := client.MustSignalAndWait(ctx, sync.State("network configured"), runEnv.TestInstanceCount)
+	seq := client.MustSignalAndWait(ctx, sync.State("get seq"), runEnv.TestInstanceCount)
 
 	numOfHubs := int64(runEnv.IntParam("numOfHubs"))
 
