@@ -63,7 +63,17 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	if err != nil {
 		panic(err)
 	}
-	me := generateMe(seq, seq <= numOfHubs, ip.String())
+
+	// set Role
+	var role Role
+	switch {
+	case seq < numOfHubs:
+		role = Hub
+	default:
+		role = PayerPayee
+	}
+
+	me := generateMe(seq, role, ip.String())
 
 	runEnv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
@@ -88,7 +98,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	cm := NewCompletionMonitor(nitroClient, runEnv)
 	defer cm.Close()
 
-	if me.IsHub {
+	if me.isHub() {
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	} else {
 
@@ -113,7 +123,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 			var r virtualfund.ObjectiveResponse
 
 			runDetails := fmt.Sprintf("me=%s,amHub=%v,hubs=%d,clients=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
-				me.Address, me.IsHub, numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
+				me.Address, me.isHub(), numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
 
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
 				r = createVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)

@@ -41,11 +41,20 @@ type P2PMessageService struct {
 	metrics *runtime.MetricsApi
 }
 
+type Role = uint
+
+const (
+	Hub Role = iota
+	Payer
+	Payee
+	PayerPayee
+)
+
 type PeerInfo struct {
 	Port      int64
 	Id        peer.ID
 	Address   types.Address
-	IsHub     bool
+	Role      Role
 	IpAddress string
 }
 
@@ -53,6 +62,13 @@ type MyInfo struct {
 	PeerInfo
 	PrivateKey ecdsa.PrivateKey
 	MessageKey p2pcrypto.PrivKey
+}
+
+func (p PeerInfo) isHub() bool {
+	return p.Role == Hub
+}
+func (p PeerInfo) isPayee() bool {
+	return p.Role == Payee
 }
 
 // MultiAddress returns the multiaddress of the peer based on their port and Id

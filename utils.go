@@ -107,7 +107,18 @@ func selectRandomPeer(peers []PeerInfo) types.Address {
 func filterPeersByHub(peers map[types.Address]PeerInfo, shouldBeHub bool) []PeerInfo {
 	filteredPeers := make([]PeerInfo, 0)
 	for _, p := range peers {
-		if p.IsHub == shouldBeHub {
+		if p.isHub() == shouldBeHub {
+			filteredPeers = append(filteredPeers, p)
+		}
+	}
+	return filteredPeers
+}
+
+// filterPeersByPayee returns peers that where p.isPayee == shouldBePayee
+func filterPeersByPayee(peers map[types.Address]PeerInfo, shouldBePayee bool) []PeerInfo {
+	filteredPeers := make([]PeerInfo, 0)
+	for _, p := range peers {
+		if p.isPayee() == shouldBePayee {
 			filteredPeers = append(filteredPeers, p)
 		}
 	}
@@ -143,7 +154,7 @@ func createVirtualChannel(myAddress types.Address, intermediary types.Address, c
 }
 
 // GeneratePeerInfo generates a random  message key/ peer id and returns a PeerInfo
-func generateMe(seq int64, isHub bool, ipAddress string) MyInfo {
+func generateMe(seq int64, role Role, ipAddress string) MyInfo {
 
 	// We use the sequence in the random source so we generate a unique key even if another client is running at the same time
 	messageKey, _, err := p2pcrypto.GenerateECDSAKeyPair(rand.New(rand.NewSource(time.Now().UnixNano() + seq)))
@@ -161,7 +172,7 @@ func generateMe(seq int64, isHub bool, ipAddress string) MyInfo {
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	port := int64(PORT_START + seq)
-	myPeerInfo := PeerInfo{Id: id, Address: address, IsHub: isHub, Port: port, IpAddress: ipAddress}
+	myPeerInfo := PeerInfo{Id: id, Address: address, Role: role, Port: port, IpAddress: ipAddress}
 	return MyInfo{myPeerInfo, *privateKey, messageKey}
 }
 
