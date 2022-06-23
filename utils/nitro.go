@@ -18,7 +18,7 @@ import (
 	"github.com/testground/sdk-go/runtime"
 )
 
-// createNitroClient starts a nitro client using the given unique sequence number and private key.
+// CreateNitroClient starts a nitro client using the given unique sequence number and private key.
 func CreateNitroClient(me m.MyInfo, peers map[types.Address]m.PeerInfo, chain *chainservice.MockChain, metrics *runtime.MetricsApi) (*nitroclient.Client, *m.P2PMessageService) {
 
 	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
@@ -33,6 +33,7 @@ func CreateNitroClient(me m.MyInfo, peers map[types.Address]m.PeerInfo, chain *c
 
 }
 
+// CreateLedgerChannel creates a ledger channel with the given counterparty with a large amount of funds (1_000_000_000_000_000_000 for each party)
 func CreateLedgerChannel(myAddress types.Address, counterparty types.Address, nitroClient *nitroclient.Client) directfund.ObjectiveResponse {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{
@@ -61,6 +62,7 @@ func CreateLedgerChannel(myAddress types.Address, counterparty types.Address, ni
 
 }
 
+// CreateVirtualChannel creates a virtual channel with the given counterparty using the intermediary as a hub
 func CreateVirtualChannel(myAddress types.Address, intermediary types.Address, counterparty types.Address, nitroClient *nitroclient.Client) virtualfund.ObjectiveResponse {
 	outcome := outcome.Exit{outcome.SingleAssetExit{
 		Allocations: outcome.Allocations{

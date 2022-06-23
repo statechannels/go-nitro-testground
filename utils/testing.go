@@ -83,6 +83,7 @@ func RunJob(job func(), duration time.Duration, concurrencyTarget int64) {
 	wg.Wait()
 }
 
+// Abbreviate shortens a string to 8 characters and adds an ellipsis.
 func Abbreviate(s fmt.Stringer) string {
 	return s.String()[0:8] + ".."
 }
