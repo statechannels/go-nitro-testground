@@ -20,6 +20,7 @@ const PORT_START = 7000
 
 func main() {
 	run.InvokeMap(map[string]interface{}{
-		"virtual-payment": createVirtualPaymentTest,
+		"virtual-payment":  createVirtualPaymentTest,
+		"virtual-payment2": createVirtualPayment2Test,
 	})
 }

@@ -67,8 +67,8 @@ type MyInfo struct {
 func (p PeerInfo) isHub() bool {
 	return p.Role == Hub
 }
-func (p PeerInfo) isPayee() bool {
-	return p.Role == Payee
+func (p PeerInfo) isPayer() bool {
+	return p.Role == Payer
 }
 
 // MultiAddress returns the multiaddress of the peer based on their port and Id

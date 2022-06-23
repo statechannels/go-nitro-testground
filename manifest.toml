@@ -35,3 +35,13 @@ networkJitter = {type = "int", unit = "milliseconds", default = 0}
 networkLatency = {type = "int", unit = "milliseconds", default = 0}
 numOfHubs = {type = "int", default = 1}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
+
+[[testcases]]
+instances = {min = 3, max = 100, default = 4}
+name = "virtual-payment2"
+
+[testcases.params]
+concurrentPaymentJobs = {type = "int", desc = "The number of concurrent payment jobs a peer should attempt to maintain", default = 1}
+networkJitter = {type = "int", unit = "milliseconds", default = 0}
+networkLatency = {type = "int", unit = "milliseconds", default = 0}
+paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
