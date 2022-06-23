@@ -58,3 +58,5 @@ At the moment there is some manual configuration to connect grafana to the metri
     - **Database**: testground
 
 3. Import dashboards into [grafana](http://localhost:3000/dashboard/import) from the [dashboards directory](./dashboards/).
+
+Minor change
