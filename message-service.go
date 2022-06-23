@@ -31,7 +31,7 @@ const (
 type P2PMessageService struct {
 	out   chan protocols.Message // for sending message to engine
 	in    chan protocols.Message // for receiving messages from engine
-	peers safesync.Map[PeerInfo]
+	peers *safesync.Map[PeerInfo]
 
 	quit chan struct{} // quit is used to signal the goroutine to stop
 
@@ -88,7 +88,7 @@ func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo, metrics *
 	h := &P2PMessageService{
 		in:      make(chan protocols.Message, BUFFER_SIZE),
 		out:     make(chan protocols.Message, BUFFER_SIZE),
-		peers:   safePeers,
+		peers:   &safePeers,
 		p2pHost: host,
 		quit:    make(chan struct{}),
 		me:      me,

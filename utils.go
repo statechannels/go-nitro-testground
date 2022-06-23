@@ -34,12 +34,12 @@ func getPeers(me PeerInfo, ctx context.Context, client sync.Client, instances in
 	peerTopic := sync.NewTopic("peer-info", &PeerInfo{})
 
 	// Publish my entry to the topic
-	client.Publish(ctx, peerTopic, me)
+	_, _ = client.Publish(ctx, peerTopic, me)
 
 	peers := map[types.Address]PeerInfo{}
 	peerChannel := make(chan *PeerInfo)
 	// Ready all my peers entries from the topic
-	client.Subscribe(ctx, peerTopic, peerChannel)
+	_, _ = client.Subscribe(ctx, peerTopic, peerChannel)
 
 	for i := 0; i <= instances-1; i++ {
 		t := <-peerChannel
