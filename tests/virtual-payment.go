@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
 	"context"
@@ -8,6 +8,10 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/statechannels/go-nitro-testground/chain"
+	"github.com/statechannels/go-nitro-testground/utils"
+	"github.com/statechannels/go-nitro-testground/utils/monitor"
+
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/testground/sdk-go/network"
@@ -15,7 +19,7 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
+func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	runEnv.D().SetFrequency(1 * time.Second)
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
@@ -63,19 +67,19 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	if err != nil {
 		panic(err)
 	}
-	me := generateMe(seq, seq <= numOfHubs, ip.String())
+	me := utils.GenerateMe(seq, seq <= numOfHubs, ip.String())
 
 	runEnv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
 
 	// Broadcasts our info and get peer info from all other instances.
-	peers := getPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
+	peers := utils.GetPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
-	chainSyncer := NewChainSyncer(me, client, ctx)
+	chainSyncer := chain.NewChainSyncer(me, client, ctx)
 	defer chainSyncer.Close()
 
-	nitroClient, ms := createNitroClient(me, peers, chainSyncer.MockChain(), runEnv.D())
+	nitroClient, ms := utils.CreateNitroClient(me, peers, chainSyncer.MockChain(), runEnv.D())
 	defer ms.Close()
 	runEnv.RecordMessage("nitro client created")
 
@@ -85,7 +89,7 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	ms.DialPeers()
 	client.MustSignalAndWait(ctx, "msDialed", runEnv.TestInstanceCount)
 
-	cm := NewCompletionMonitor(nitroClient, runEnv)
+	cm := monitor.NewCompletionMonitor(nitroClient, runEnv)
 	defer cm.Close()
 
 	if me.IsHub {
@@ -94,10 +98,10 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 		// Create ledger channels with all the hubs
 		ledgerIds := []protocols.ObjectiveId{}
-		hubs := filterPeersByHub(peers, true)
+		hubs := utils.FilterPeersByHub(peers, true)
 		for _, h := range hubs {
-			r := createLedgerChannel(me.Address, h.Address, nitroClient)
-			runEnv.RecordMessage("Creating ledger channel %s with hub %s", abbreviate(r.ChannelId), abbreviate((h.Address)))
+			r := utils.CreateLedgerChannel(me.Address, h.Address, nitroClient)
+			runEnv.RecordMessage("Creating ledger channel %s with hub %s", utils.Abbreviate(r.ChannelId), utils.Abbreviate((h.Address)))
 			ledgerIds = append(ledgerIds, r.Id)
 		}
 		cm.WaitForObjectivesToComplete(ledgerIds)
@@ -108,32 +112,32 @@ func createVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 		jobCount := int64(runEnv.IntParam("concurrentPaymentJobs"))
 
 		createVirtualPaymentsJob := func() {
-			randomHub := selectRandomPeer(filterPeersByHub(peers, true))
-			randomPayee := selectRandomPeer(filterPeersByHub(peers, false))
+			randomHub := utils.SelectRandomPeer(utils.FilterPeersByHub(peers, true))
+			randomPayee := utils.SelectRandomPeer(utils.FilterPeersByHub(peers, false))
 			var r virtualfund.ObjectiveResponse
 
 			runDetails := fmt.Sprintf("me=%s,amHub=%v,hubs=%d,clients=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
 				me.Address, me.IsHub, numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
 
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
-				r = createVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
+				r = utils.CreateVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
 				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
 			})
-			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", abbreviate(r.ChannelId), abbreviate(randomPayee), abbreviate(randomHub))
+			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(r.ChannelId), utils.Abbreviate(randomPayee), utils.Abbreviate(randomHub))
 			// We always want to wait a little bit to avoid https://github.com/statechannels/go-nitro/issues/744
 			minSleep := 1 * time.Second
 			sleepDuration := time.Duration(rand.Int63n(int64(time.Second*1))) + minSleep
-			runEnv.RecordMessage("Sleeping %v to simulate payment exchanges for %s", sleepDuration, abbreviate(r.ChannelId))
+			runEnv.RecordMessage("Sleeping %v to simulate payment exchanges for %s", sleepDuration, utils.Abbreviate(r.ChannelId))
 			time.Sleep(sleepDuration)
 
 			totalPaymentSize := big.NewInt(rand.Int63n(10))
 			id := nitroClient.CloseVirtualChannel(r.ChannelId, totalPaymentSize)
-			runEnv.RecordMessage("Closing %s with payment of %d to %s", abbreviate(r.ChannelId), totalPaymentSize, abbreviate(randomPayee))
+			runEnv.RecordMessage("Closing %s with payment of %d to %s", utils.Abbreviate(r.ChannelId), totalPaymentSize, utils.Abbreviate(randomPayee))
 			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{id})
 
 		}
 
-		RunJob(createVirtualPaymentsJob, testDuration, jobCount)
+		utils.RunJob(createVirtualPaymentsJob, testDuration, jobCount)
 
 	}
 

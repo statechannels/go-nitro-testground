@@ -1,15 +1,13 @@
-package main
+package messaging
 
 import (
 	"bufio"
 	"context"
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"io"
 
 	"github.com/libp2p/go-libp2p"
-	p2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -39,20 +37,6 @@ type P2PMessageService struct {
 	p2pHost host.Host
 
 	metrics *runtime.MetricsApi
-}
-
-type PeerInfo struct {
-	Port      int64
-	Id        peer.ID
-	Address   types.Address
-	IsHub     bool
-	IpAddress string
-}
-
-type MyInfo struct {
-	PeerInfo
-	PrivateKey ecdsa.PrivateKey
-	MessageKey p2pcrypto.PrivKey
 }
 
 // MultiAddress returns the multiaddress of the peer based on their port and Id
