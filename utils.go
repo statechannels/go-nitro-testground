@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
-	"path/filepath"
 	s "sync"
 	"sync/atomic"
 	"time"
@@ -58,9 +57,8 @@ func createNitroClient(me MyInfo, peers map[types.Address]PeerInfo, chain *chain
 
 	ms := NewP2PMessageService(me, peers, metrics)
 
-	// TODO: Figure out good place to log this
-	filename := filepath.Join("../artifacts", fmt.Sprintf("testground-%s.log", me.Address))
-	logDestination, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
+	// The outputs folder will be copied when results are collected.
+	logDestination, _ := os.OpenFile("./outputs/nitro-engine.log", os.O_CREATE|os.O_WRONLY, 0666)
 
 	client := nitroclient.New(ms, chain, store, logDestination, &engine.PermissivePolicy{}, metrics)
 	return &client, ms
