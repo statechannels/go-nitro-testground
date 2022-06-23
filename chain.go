@@ -45,7 +45,7 @@ func (c *ChainSyncer) shareTransactions() {
 func (c *ChainSyncer) replayTransactions() {
 
 	peerTransactions := make(chan *PeerTransaction)
-	c.client.Subscribe(c.ctx, c.topic, peerTransactions)
+	_, _ = c.client.Subscribe(c.ctx, c.topic, peerTransactions)
 	for {
 		select {
 		case <-c.quit:

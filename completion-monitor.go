@@ -13,7 +13,7 @@ const SLEEP_TIME = time.Microsecond * 500
 
 // completionMonitor is a struct used to watch for objective completion
 type completionMonitor struct {
-	completed safesync.Map[bool]
+	completed *safesync.Map[bool]
 	client    *nitroclient.Client
 	quit      chan struct{}
 	runenv    *runtime.RunEnv
@@ -25,7 +25,7 @@ func NewCompletionMonitor(client *nitroclient.Client, runenv *runtime.RunEnv) *c
 	completed := safesync.Map[bool]{}
 
 	c := &completionMonitor{
-		completed: completed,
+		completed: &completed,
 		client:    client,
 		quit:      make(chan struct{}),
 		runenv:    runenv,
