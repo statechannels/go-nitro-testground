@@ -181,13 +181,16 @@ func (s *P2PMessageService) connectToPeers() {
 			raw, err := m.Serialize()
 			s.checkError(err)
 			s.recordOutgoingStats(m)
-			writer := bufio.NewWriter(peerStreams[m.To])
+			stream, ok := peerStreams[m.To]
+			if !ok {
+				panic(fmt.Sprintf("no stream for %v", m.To))
+			}
+			writer := bufio.NewWriter(stream)
 			_, err = writer.WriteString(raw)
 			s.checkError(err)
 			err = writer.WriteByte(DELIMETER)
 			s.checkError(err)
 			writer.Flush()
-
 		}
 	}
 
