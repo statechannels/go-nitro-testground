@@ -3,15 +3,12 @@ package tests
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"math/rand"
 	"time"
 
 	"github.com/statechannels/go-nitro-testground/chain"
+	"github.com/statechannels/go-nitro-testground/paymentclient"
 	"github.com/statechannels/go-nitro-testground/utils"
-	"github.com/statechannels/go-nitro-testground/utils/monitor"
-
-	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
@@ -52,33 +49,22 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	chainSyncer := chain.NewChainSyncer(me, client, ctx)
 	defer chainSyncer.Close()
 
-	nitroClient, ms := utils.CreateNitroClient(me, peers, chainSyncer.MockChain(), runEnv.D())
-	defer ms.Close()
-	runEnv.RecordMessage("nitro client created")
+	pc := paymentclient.NewClient(me, peers, chainSyncer.MockChain(), runEnv.D())
+	defer pc.Close()
 
-	// We wait until every instance has successfully created their client
-	client.MustSignalAndWait(ctx, "clientReady", runEnv.TestInstanceCount)
-
-	ms.DialPeers()
-	client.MustSignalAndWait(ctx, "msDialed", runEnv.TestInstanceCount)
-
-	cm := monitor.NewCompletionMonitor(nitroClient, runEnv)
-	defer cm.Close()
+	runEnv.RecordMessage("payment client created")
+	// We wait until everyone has chosen an address.
+	client.MustSignalAndWait(ctx, "client created", runEnv.TestInstanceCount)
+	pc.ConnectToPeers()
+	client.MustSignalAndWait(ctx, "client connected", runEnv.TestInstanceCount)
 
 	if me.IsHub {
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	} else {
 
 		// Create ledger channels with all the hubs
-		ledgerIds := []protocols.ObjectiveId{}
-		hubs := utils.FilterPeersByHub(peers, true)
-		for _, h := range hubs {
-			r := utils.CreateLedgerChannel(me.Address, h.Address, nitroClient)
-			runEnv.RecordMessage("Creating ledger channel %s with hub %s", utils.Abbreviate(r.ChannelId), utils.Abbreviate((h.Address)))
-			ledgerIds = append(ledgerIds, r.Id)
-		}
-		cm.WaitForObjectivesToComplete(ledgerIds)
 
+		pc.CreateLedgerChannels(1_000_000_000_000)
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 
 		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
@@ -92,21 +78,20 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 			runDetails := fmt.Sprintf("me=%s,amHub=%v,hubs=%d,clients=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
 				me.Address, me.IsHub, numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
 
+			var paymentChan *paymentclient.PaymentChannel
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
-				r = utils.CreateVirtualChannel(me.Address, randomHub, randomPayee, nitroClient)
-				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
+				paymentChan = pc.CreatePaymentChannel(randomHub, randomPayee, 100)
+				paymentChan.Pay(1)
 			})
 			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(r.ChannelId), utils.Abbreviate(randomPayee), utils.Abbreviate(randomHub))
-			// We always want to wait a little bit to avoid https://github.com/statechannels/go-nitro/issues/744
-			minSleep := 1 * time.Second
-			sleepDuration := time.Duration(rand.Int63n(int64(time.Second*1))) + minSleep
-			runEnv.RecordMessage("Sleeping %v to simulate payment exchanges for %s", sleepDuration, utils.Abbreviate(r.ChannelId))
-			time.Sleep(sleepDuration)
+			for i := 0; i < int(rand.Int63n(5))+5; i++ {
+				minSleep := time.Duration(50 * time.Millisecond)
+				time.Sleep(minSleep + time.Duration(rand.Int63n(int64(time.Millisecond*100))))
+				paymentChan.Pay(uint(rand.Int63n(5)))
+			}
 
-			totalPaymentSize := big.NewInt(rand.Int63n(10))
-			id := nitroClient.CloseVirtualChannel(r.ChannelId, totalPaymentSize)
-			runEnv.RecordMessage("Closing %s with payment of %d to %s", utils.Abbreviate(r.ChannelId), totalPaymentSize, utils.Abbreviate(randomPayee))
-			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{id})
+			runEnv.RecordMessage("Closing %s with payment of %d to %s", utils.Abbreviate(r.ChannelId), paymentChan.Total, utils.Abbreviate(randomPayee))
+			paymentChan.Settle()
 
 		}
 
