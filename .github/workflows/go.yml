@@ -37,6 +37,34 @@ jobs:
         # that doesn't match what you checked in (or forgot to check in)
         run: git diff --exit-code
 
+  
+      - name: Checkout testground
+        uses: actions/checkout@v3
+        with:
+            repository: statechannels/testground
+            path: ./testground
+      
+      - name:  restore cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path:  ../testground
+          key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+    
+      - name: Build testground
+        working-directory: ./testground
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: make install
+
+      - name: Import test to testground
+        run: testground plan import --from  ../go-nitro-testground
+
+      - name: Start testground
+        run: testground daemon &
+       
+      - name: Run testground test
+        run:  testground run s -p=go-nitro-testground -t=virtual-payment -b=exec:go -r=local:exec -tp=numOfHubs=1 -i=3 -tp=paymentTestDuration=2 -tp=concurrentPaymentJobs=1
+
       # - name: Notify slack fail
       #   if: ${{ failure() && github.ref == 'refs/heads/main'}}
       #   env:
