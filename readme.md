@@ -1,7 +1,7 @@
-# Go Nitro Testground Test-plan
-This implements a test plan for testground to run various go-nitro integration tests.
+# Go Nitro Testground 
+This repository contains integration tests for the go-nitro client. It uses the [testground](https://docs.testground.ai/) test runner to run the tests.
 
-There is currently only one test case: [create-ledger](./create-ledger.go): A scenario which creates directly funded ledger channels.
+There is currently only one test case: [virtual-payment](./tests/virtual-payment.go).
 
 
 ## Getting Started
