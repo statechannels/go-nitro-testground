@@ -37,30 +37,11 @@ jobs:
         # that doesn't match what you checked in (or forgot to check in)
         run: git diff --exit-code
 
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: Checkout testplan
-        uses: actions/checkout@v2
-
       - name: Checkout testground
         uses: actions/checkout@v3
         with:
             repository: statechannels/testground
             path: ./tg_src
-
-      - uses: actions/setup-go@v3
-        with:
-          go-version: "^1.18.0"
-
-      - name: Build
-        run: go build -v ./...
-
-      - name: Tidy
-        run: go mod tidy
-
 
       - name: Build the Docker image
         run: 	docker build --build-arg TG_VERSION=cfcdb3afb9922e2c811fc981ca07ecd42d3736f3 -t iptestground/testground:edge -f ./tg_src/Dockerfile.testground .
