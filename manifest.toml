@@ -23,10 +23,6 @@ enabled = true
 
 [[testcases]]
 instances = {min = 2, max = 100, default = 5}
-name = "create-ledger"
-
-[[testcases]]
-instances = {min = 2, max = 100, default = 5}
 name = "virtual-payment"
 
 [testcases.params]
