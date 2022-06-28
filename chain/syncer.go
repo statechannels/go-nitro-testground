@@ -1,15 +1,24 @@
-package main
+package chain
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/mitchellh/hashstructure"
+	"github.com/statechannels/go-nitro-testground/messaging"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	"github.com/statechannels/go-nitro/client/engine/store/safesync"
 	"github.com/statechannels/go-nitro/protocols"
+	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/sync"
 )
+
+// PeerTransaction is a a transaction that also indicates which peer sent it.
+// This is used to replay a transaction on our local chain instance
+type PeerTransaction struct {
+	Transaction protocols.ChainTransaction
+	From        types.Address
+}
 
 // ChainSyncer is responsible for keeping a local MockChain in sync with other clients
 type ChainSyncer struct {
@@ -19,7 +28,7 @@ type ChainSyncer struct {
 	txListener       chan protocols.ChainTransaction
 	topic            *sync.Topic
 	ctx              context.Context
-	me               MyInfo
+	me               messaging.MyInfo
 	quit             chan struct{}
 }
 
@@ -73,7 +82,7 @@ func (c *ChainSyncer) Close() {
 }
 
 // NewChainSyncer creates a new chain and ChainSyncer and starts syncing with other client chains
-func NewChainSyncer(me MyInfo, client *sync.DefaultClient, ctx context.Context) *ChainSyncer {
+func NewChainSyncer(me messaging.MyInfo, client *sync.DefaultClient, ctx context.Context) *ChainSyncer {
 	txListener := make(chan protocols.ChainTransaction, 1_000_000)
 	topic := sync.NewTopic("chain-transaction", &PeerTransaction{})
 	chain := chainservice.NewMockChainWithTransactionListener(txListener)
