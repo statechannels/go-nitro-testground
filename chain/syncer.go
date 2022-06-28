@@ -66,7 +66,7 @@ func (c *ChainSyncer) replayTransactions() {
 				panic(err)
 			}
 			if seenBefore, _ := c.seenTransactions.Load(fmt.Sprintf("%x", tHash)); !seenBefore {
-				fmt.Printf("Sending transaction %+v\n", t.Transaction)
+				fmt.Printf("ChainSyncer: Replaying shared transaction %+v\n", t.Transaction)
 				c.chain.SendTransaction(t.Transaction)
 				c.seenTransactions.Store(fmt.Sprintf("%x", tHash), true)
 
