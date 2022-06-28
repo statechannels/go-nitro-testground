@@ -24,11 +24,11 @@ testground daemon  # will start the daemon listening on localhost:8042 by defaul
 Register the go-nitro test plan with the testground:
 ```sh
 # imports the test plan from this repository into testground
-testground plan import --from ../go-nitro-test-plan
+testground plan import --from ../go-nitro-testground
 ```
 Run the test:
 ```sh
- testground run s -p=go-nitro-test-plan -t=virtual-payment -b=exec:go -r=local:exec -tp=numOfHubs=2 -i=5 -tp=paymentTestDuration=10 -tp=concurrentPaymentJobs=2
+ testground run s -p=go-nitro-testground -t=virtual-payment -b=exec:go -r=local:exec -tp=numOfHubs=2 -i=5 -tp=paymentTestDuration=10 -tp=concurrentPaymentJobs=2
 ```
 This requests a run of the `virtual-payment` test-case with:
 - `-i=5` 5 instances with their own nitro client
