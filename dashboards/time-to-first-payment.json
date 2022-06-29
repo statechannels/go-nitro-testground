@@ -1,4 +1,41 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_INFLUXDB",
+      "label": "InfluxDB",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "influxdb",
+      "pluginName": "InfluxDB"
+    }
+  ],
+  "__elements": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.5.6"
+    },
+    {
+      "type": "datasource",
+      "id": "influxdb",
+      "name": "InfluxDB",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "text",
+      "name": "Text",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -24,14 +61,15 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 4,
-  "iteration": 1655919699030,
+  "id": null,
+  "iteration": 1656538683303,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
-        "type": "influxdb"
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB}"
       },
       "gridPos": {
         "h": 9,
@@ -41,7 +79,7 @@
       },
       "id": 4,
       "options": {
-        "content": "<table>\n<thead>\n  <tr>\n    <th></th>\n    <th></th>\n  </tr>\n</thead>\n<tbody>\n  <tr>\n    <td>Run Id</td>\n    <td>${runId}</td>\n  </tr>\n  <tr>\n    <td>Client Concurrency</td>\n    <td>${jobCount}</td>\n  </tr>\n  <tr>\n    <td>Payment test duration</td>\n    <td>${testDuration}</td>\n  </tr>\n  <tr>\n    <td>Number of clients</td>\n    <td>${clients}</td>\n  </tr>\n    <tr>\n    <td>Number of hubs</td>\n    <td>${hubs}</td>\n  </tr>\n      <tr>\n    <td>Latency (ms)</td>\n    <td>${latency}</td>\n  </tr>\n      <tr>\n    <td>Jitter (ms)</td>\n    <td>${jitter}</td>\n  </tr>\n</tbody>\n</table>",
+        "content": "<table>\n<thead>\n  <tr>\n    <th></th>\n    <th></th>\n  </tr>\n</thead>\n<tbody>\n  <tr>\n    <td>Run Id</td>\n    <td>${runId}</td>\n  </tr>\n  <tr>\n    <td>Client Concurrency</td>\n    <td>${jobCount}</td>\n  </tr>\n  <tr>\n    <td>Payment test duration</td>\n    <td>${testDuration}</td>\n  </tr>\n  <tr>\n    <td>Number of payees</td>\n    <td>${payees}</td>\n  </tr>\n    <tr>\n    <td>Number of payers</td>\n    <td>${payers}</td>\n  </tr>\n     <tr>\n    <td>Number of payee-payers</td>\n    <td>${payeepayers}</td>\n  </tr>\n    <tr>\n    <td>Number of hubs</td>\n    <td>${hubs}</td>\n  </tr>\n      <tr>\n    <td>Latency (ms)</td>\n    <td>${latency}</td>\n  </tr>\n      <tr>\n    <td>Jitter (ms)</td>\n    <td>${jitter}</td>\n  </tr>\n</tbody>\n</table>",
         "mode": "html"
       },
       "pluginVersion": "8.5.6",
@@ -50,7 +88,8 @@
     },
     {
       "datasource": {
-        "type": "influxdb"
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -127,7 +166,8 @@
         {
           "alias": "Handle API",
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB}"
           },
           "groupBy": [
             {
@@ -173,7 +213,8 @@
         {
           "alias": "Handle Message",
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB}"
           },
           "groupBy": [
             {
@@ -220,7 +261,8 @@
         {
           "alias": "Crank",
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB}"
           },
           "groupBy": [
             {
@@ -270,8 +312,8 @@
     },
     {
       "datasource": {
-        "type": "influxdb"
-      
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB}"
       },
       "description": "The mean time to first payment among ALL clients",
       "fieldConfig": {
@@ -351,7 +393,8 @@
         {
           "alias": "Average time to first payment",
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB}"
           },
           "groupBy": [
             {
@@ -400,8 +443,8 @@
     },
     {
       "datasource": {
-        "type": "influxdb"
-      
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB}"
       },
       "description": "",
       "fieldConfig": {
@@ -479,7 +522,8 @@
         {
           "alias": "Hub $tag_wallet",
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB}"
           },
           "groupBy": [
             {
@@ -549,8 +593,8 @@
     },
     {
       "datasource": {
-        "type": "influxdb"
-      
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB}"
       },
       "description": "This displays the average time to first payment for each client",
       "fieldConfig": {
@@ -628,7 +672,8 @@
         {
           "alias": "Client $tag_me",
           "datasource": {
-            "type": "influxdb"
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB}"
           },
           "groupBy": [
             {
@@ -689,14 +734,10 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": false,
-          "text": "capl26nsemvkgco6vhfg",
-          "value": "capl26nsemvkgco6vhfg"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
         "definition": "select  run,count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where $timeFilter",
         "hide": 0,
@@ -712,14 +753,10 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "2",
-          "value": "2"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
         "definition": "SELECT concurrentJobs, mean FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run = '$runId'",
         "hide": 2,
@@ -735,14 +772,10 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "2m0s",
-          "value": "2m0s"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
         "definition": "SELECT \"duration\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "hide": 2,
@@ -758,14 +791,10 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "2",
-          "value": "2"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
         "definition": "SELECT \"hubs\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "hide": 2,
@@ -781,22 +810,18 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "5",
-          "value": "5"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
-        "definition": "SELECT \"clients\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "definition": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "hide": 2,
         "includeAll": false,
         "multi": false,
-        "name": "clients",
+        "name": "payees",
         "options": [],
-        "query": "SELECT \"clients\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "query": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -804,14 +829,10 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "0",
-          "value": "0"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
         "definition": "SELECT \"jitter\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "hide": 2,
@@ -827,14 +848,10 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "0",
-          "value": "0"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
         "definition": "SELECT \"latency\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "hide": 2,
@@ -851,14 +868,10 @@
       },
       {
         "allValue": "",
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
+        "current": {},
         "datasource": {
-          "type": "influxdb"
-        
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
         },
         "definition": "SELECT \"me\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "hide": 2,
@@ -872,12 +885,50 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "definition": "SELECT \"payers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "payers",
+        "options": [],
+        "query": "SELECT \"payers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "definition": "SELECT \"payeePayers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "payeepayers",
+        "options": [],
+        "query": "SELECT \"payeePayers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-5m",
-    "to": "now"
+    "from": "2022-06-29T21:46:17.754Z",
+    "to": "2022-06-29T21:46:34.949Z"
   },
   "timepicker": {},
   "timezone": "",
