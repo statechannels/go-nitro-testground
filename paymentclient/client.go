@@ -9,6 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 	m "github.com/statechannels/go-nitro-testground/messaging"
+	"github.com/statechannels/go-nitro-testground/peer"
 
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitroclient "github.com/statechannels/go-nitro/client"
@@ -27,13 +28,13 @@ import (
 type PaymentClient struct {
 	client *nitroclient.Client
 	ms     *m.P2PMessageService
-	me     m.MyInfo
-	peers  map[types.Address]m.PeerInfo
+	me     peer.MyInfo
+	peers  []peer.PeerInfo
 	cm     *completionMonitor
 }
 
 // NewClient creates a new payment client. It will create a new nitro client as well as a message service to communicate with the peers.
-func NewClient(me m.MyInfo, peers map[types.Address]m.PeerInfo, chain *chainservice.MockChain, metrics *runtime.MetricsApi) *PaymentClient {
+func NewClient(me peer.MyInfo, peers []peer.PeerInfo, chain *chainservice.MockChain, metrics *runtime.MetricsApi) *PaymentClient {
 
 	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
 
@@ -62,7 +63,7 @@ func (c *PaymentClient) ConnectToPeers() {
 func (c *PaymentClient) CreateLedgerChannels(amount uint) {
 	ids := []protocols.ObjectiveId{}
 	for _, p := range c.peers {
-		if p.Role != m.Hub {
+		if p.Role != peer.Hub {
 			continue
 		}
 		outcome := outcome.Exit{outcome.SingleAssetExit{

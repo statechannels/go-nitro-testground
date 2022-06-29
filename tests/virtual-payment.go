@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/statechannels/go-nitro-testground/chain"
-	"github.com/statechannels/go-nitro-testground/messaging"
+	"github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro-testground/paymentclient"
+	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
 	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/testground/sdk-go/runtime"
@@ -36,7 +37,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	if err != nil {
 		panic(err)
 	}
-	config := utils.RolesConfig{}
+	config := config.RolesConfig{}
 	config.AmountHubs = uint(runEnv.IntParam("numOfHubs"))
 	config.Payees = uint(runEnv.IntParam("numOfPayees"))
 	config.Payers = uint(runEnv.IntParam("numOfPayers"))
@@ -45,14 +46,14 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	if err := config.Validate(uint(runEnv.TestInstanceCount)); err != nil {
 		return err
 	}
-	me := utils.GenerateMe(seq, config, ip.String())
+	me := peer.GenerateMe(seq, config, ip.String())
 
 	runEnv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
 
 	// Broadcasts our info and get peer info from all other instances.
-	peers := utils.GetPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
+	peers := peer.GetPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
 	chainSyncer := chain.NewChainSyncer(me, client, ctx)
 	defer chainSyncer.Close()
@@ -67,7 +68,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	client.MustSignalAndWait(ctx, "client connected", runEnv.TestInstanceCount)
 	testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
 	jobCount := int64(runEnv.IntParam("concurrentPaymentJobs"))
-	if me.Role == messaging.Hub {
+	if me.Role == peer.Hub {
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	} else {
 		// Create ledger channels with all the hubs
@@ -77,13 +78,13 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 	if me.IsPayer() {
 
-		hubs := utils.FilterByRole(peers, messaging.Hub)
-		payees := utils.FilterByRole(peers, messaging.Payee)
-		payees = append(payees, utils.FilterByRole(peers, messaging.PayerPayee)...)
+		hubs := peer.FilterByRole(peers, peer.Hub)
+		payees := peer.FilterByRole(peers, peer.Payee)
+		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-			randomHub := utils.SelectRandomPeer(hubs)
-			randomPayee := utils.SelectRandomPeer(payees)
+			randomHub := peer.SelectRandomPeer(hubs)
+			randomPayee := peer.SelectRandomPeer(payees)
 			var r virtualfund.ObjectiveResponse
 
 			runDetails := fmt.Sprintf("me=%s,role=%v,hubs=%d,payers=%d,payees=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
@@ -91,17 +92,17 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 
 			var paymentChan *paymentclient.PaymentChannel
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
-				paymentChan = pc.CreatePaymentChannel(randomHub, randomPayee, 100)
+				paymentChan = pc.CreatePaymentChannel(randomHub.Address, randomPayee.Address, 100)
 				paymentChan.Pay(1)
 			})
-			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(r.ChannelId), utils.Abbreviate(randomPayee), utils.Abbreviate(randomHub))
+			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(r.ChannelId), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(randomHub.Address))
 			for i := 0; i < int(rand.Int63n(5))+5; i++ {
 				minSleep := time.Duration(50 * time.Millisecond)
 				time.Sleep(minSleep + time.Duration(rand.Int63n(int64(time.Millisecond*100))))
 				paymentChan.Pay(uint(rand.Int63n(5)))
 			}
 
-			runEnv.RecordMessage("Closing %s with payment of %d to %s", utils.Abbreviate(r.ChannelId), paymentChan.Total, utils.Abbreviate(randomPayee))
+			runEnv.RecordMessage("Closing %s with payment of %d to %s", utils.Abbreviate(r.ChannelId), paymentChan.Total, utils.Abbreviate(randomPayee.Address))
 			paymentChan.Settle()
 
 		}

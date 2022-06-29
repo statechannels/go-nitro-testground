@@ -10,9 +10,9 @@ import (
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
+	p2ppeer "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/peerstore"
-	"github.com/multiformats/go-multiaddr"
+	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro/client/engine/store/safesync"
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/types"
@@ -29,29 +29,18 @@ const (
 type P2PMessageService struct {
 	out   chan protocols.Message // for sending message to engine
 	in    chan protocols.Message // for receiving messages from engine
-	peers *safesync.Map[PeerInfo]
+	peers *safesync.Map[peer.PeerInfo]
 
 	quit chan struct{} // quit is used to signal the goroutine to stop
 
-	me      MyInfo
+	me      peer.MyInfo
 	p2pHost host.Host
 
 	metrics *runtime.MetricsApi
 }
 
-// MultiAddress returns the multiaddress of the peer based on their port and Id
-func (p PeerInfo) MultiAddress() multiaddr.Multiaddr {
-
-	a, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d/p2p/%s", p.IpAddress, p.Port, p.Id))
-	if err != nil {
-		panic(err)
-	}
-
-	return a
-}
-
 // NewTestMessageService returns a running SimpleTcpMessageService listening on the given url
-func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo, metrics *runtime.MetricsApi) *P2PMessageService {
+func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtime.MetricsApi) *P2PMessageService {
 
 	options := []libp2p.Option{libp2p.Identity(me.MessageKey),
 		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/%s/tcp/%d", me.IpAddress, me.Port)),
@@ -65,7 +54,7 @@ func NewP2PMessageService(me MyInfo, peers map[types.Address]PeerInfo, metrics *
 		panic(err)
 	}
 
-	safePeers := safesync.Map[PeerInfo]{}
+	safePeers := safesync.Map[peer.PeerInfo]{}
 	for _, p := range peers {
 		safePeers.Store(p.Address.String(), p)
 	}
@@ -119,13 +108,13 @@ func (s *P2PMessageService) DialPeers() {
 func (s *P2PMessageService) connectToPeers() {
 	// create a map with streams to all peers
 	peerStreams := make(map[types.Address]network.Stream)
-	s.peers.Range(func(key string, p PeerInfo) bool {
+	s.peers.Range(func(key string, p peer.PeerInfo) bool {
 
 		if p.Address == s.me.Address {
 			return false
 		}
 		// Extract the peer ID from the multiaddr.
-		info, err := peer.AddrInfoFromP2pAddr(p.MultiAddress())
+		info, err := p2ppeer.AddrInfoFromP2pAddr(p.MultiAddress())
 		s.checkError(err)
 
 		// Add the destination's peer multiaddress in the peerstore.
