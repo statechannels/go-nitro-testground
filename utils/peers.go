@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -41,11 +42,11 @@ func GetPeers(me m.PeerInfo, ctx context.Context, client sync.Client, instances 
 	return peers
 }
 
-// FilterPeersByHub returns peers that where p.IsHub == shouldBeHub
-func FilterPeersByHub(peers map[types.Address]m.PeerInfo, shouldBeHub bool) []m.PeerInfo {
+// FilterByRole returns peers that where p.IsHub == shouldBeHub
+func FilterByRole(peers map[types.Address]m.PeerInfo, role m.Role) []m.PeerInfo {
 	filteredPeers := make([]m.PeerInfo, 0)
 	for _, p := range peers {
-		if p.IsHub == shouldBeHub {
+		if p.Role == role {
 			filteredPeers = append(filteredPeers, p)
 		}
 	}
@@ -61,8 +62,8 @@ func SelectRandomPeer(peers []m.PeerInfo) types.Address {
 }
 
 // GenerateMe generates a random  message key/ peer id and returns a PeerInfo
-func GenerateMe(seq int64, isHub bool, ipAddress string) m.MyInfo {
-
+func GenerateMe(seq int64, c RolesConfig, ipAddress string) m.MyInfo {
+	role := c.GetRole(seq)
 	// We use the sequence in the random source so we generate a unique key even if another client is running at the same time
 	messageKey, _, err := p2pcrypto.GenerateECDSAKeyPair(rand.New(rand.NewSource(time.Now().UnixNano() + seq)))
 	if err != nil {
@@ -79,6 +80,40 @@ func GenerateMe(seq int64, isHub bool, ipAddress string) m.MyInfo {
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	port := int64(PORT_START + seq)
-	myPeerInfo := m.PeerInfo{Id: id, Address: address, IsHub: isHub, Port: port, IpAddress: ipAddress}
+	myPeerInfo := m.PeerInfo{Id: id, Address: address, Role: role, Port: port, IpAddress: ipAddress}
 	return m.MyInfo{PeerInfo: myPeerInfo, PrivateKey: *privateKey, MessageKey: messageKey}
+}
+
+type RolesConfig struct {
+	AmountHubs   uint
+	Payees       uint
+	Payers       uint
+	PayeePayeers uint
+}
+
+func (c *RolesConfig) Validate(instanceCount uint) error {
+	total := c.AmountHubs + c.PayeePayeers + c.Payees + c.Payers
+	if total != instanceCount {
+		return fmt.Errorf("total number of roles (%d) does not match instance count (%d)", total, instanceCount)
+	}
+	return nil
+}
+
+func (c *RolesConfig) GetRole(seq int64) m.Role {
+	switch {
+	case seq <= int64(c.AmountHubs):
+		return m.Hub
+
+	case seq <= int64(c.AmountHubs+c.Payers):
+		return m.Payee
+
+	case seq <= int64(c.AmountHubs+c.Payers+c.Payees):
+		return m.Payer
+
+	case seq <= int64(c.AmountHubs+c.Payers+c.Payees+c.PayeePayeers):
+		return m.PayerPayee
+
+	default:
+		panic("sequence number is larger than the amount of roles we expect")
+	}
 }

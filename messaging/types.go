@@ -8,12 +8,29 @@ import (
 	"github.com/statechannels/go-nitro/types"
 )
 
+type Role = uint
+
+const (
+	Hub Role = iota
+	Payer
+	Payee
+	PayerPayee
+)
+
 type PeerInfo struct {
 	Port      int64
 	Id        peer.ID
 	Address   types.Address
-	IsHub     bool
+	Role      Role
 	IpAddress string
+}
+
+func (p PeerInfo) IsPayer() bool {
+	return p.Role == Payer || p.Role == PayerPayee
+}
+
+func (p PeerInfo) IsPayee() bool {
+	return p.Role == Payee || p.Role == PayerPayee
 }
 
 type MyInfo struct {

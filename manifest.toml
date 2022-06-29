@@ -31,4 +31,6 @@ concurrentPaymentJobs = {type = "int", desc = "The number of concurrent payment 
 networkJitter = {type = "int", unit = "milliseconds", default = 0}
 networkLatency = {type = "int", unit = "milliseconds", default = 0}
 numOfHubs = {type = "int", default = 1}
+numOfPayees = {type = "int", default = 1}
+numOfPayers = {type = "int", default = 1}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}

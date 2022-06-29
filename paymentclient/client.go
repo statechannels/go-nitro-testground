@@ -62,7 +62,7 @@ func (c *PaymentClient) ConnectToPeers() {
 func (c *PaymentClient) CreateLedgerChannels(amount uint) {
 	ids := []protocols.ObjectiveId{}
 	for _, p := range c.peers {
-		if !p.IsHub {
+		if p.Role != m.Hub {
 			continue
 		}
 		outcome := outcome.Exit{outcome.SingleAssetExit{
