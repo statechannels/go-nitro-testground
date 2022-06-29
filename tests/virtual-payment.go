@@ -76,8 +76,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 			randomHub := peer.SelectRandomPeer(hubs)
 			randomPayee := peer.SelectRandomPeer(payees)
 
-			runDetails := fmt.Sprintf("me=%s,role=%v,hubs=%d,payers=%d,payees=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
-				me.Address, me.Role, config.NumHubs, config.NumPayers, config.NumPayees, config.NetworkJitter, config.NetworkLatency, networkJitterMS, networkLatencyMS)
+			runDetails := fmt.Sprintf("me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
+				me.Address, me.Role, config.NumHubs, config.NumPayers, config.NumPayees, config.NumPayeePayers, config.PaymentTestDuration, config.ConcurrentPaymentJobs, config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds())
 
 			var paymentChan *paymentclient.PaymentChannel
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {

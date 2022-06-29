@@ -37,7 +37,7 @@ func GetRunConfig(runEnv *runtime.RunEnv) RunConfig {
 	config.NumHubs = uint(runEnv.IntParam(string(numHubsParam)))
 	config.NumPayees = uint(runEnv.IntParam(string(numPayeeParam)))
 	config.NumPayers = uint(runEnv.IntParam(string(numPayersParam)))
-	config.NumPayeePayers = 0
+	config.NumPayeePayers = uint(runEnv.IntParam(string(NumPayeePayersParam)))
 	config.NetworkJitter = time.Duration(runEnv.IntParam(string(networkJitterParam))) * time.Millisecond
 	config.NetworkLatency = time.Duration(runEnv.IntParam(string(networkLatencyParam))) * time.Millisecond
 	config.PaymentTestDuration = time.Duration(runEnv.IntParam(string(paymentTestDurationParam))) * time.Second
