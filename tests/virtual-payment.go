@@ -36,7 +36,10 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	if err != nil {
 		panic(err)
 	}
-	config := c.GetRunConfig(runEnv)
+	config, err := c.GetRunConfig(runEnv)
+	if err != nil {
+		panic(err)
+	}
 	me := peer.GenerateMe(seq, config, ip.String())
 
 	runEnv.RecordMessage("I am %+v", me)

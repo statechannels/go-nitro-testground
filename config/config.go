@@ -31,7 +31,7 @@ func (c *RunConfig) Validate(instanceCount uint) error {
 	return nil
 }
 
-func GetRunConfig(runEnv *runtime.RunEnv) RunConfig {
+func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 	config := RunConfig{}
 
 	config.NumHubs = uint(runEnv.IntParam(string(numHubsParam)))
@@ -42,6 +42,6 @@ func GetRunConfig(runEnv *runtime.RunEnv) RunConfig {
 	config.NetworkLatency = time.Duration(runEnv.IntParam(string(networkLatencyParam))) * time.Millisecond
 	config.PaymentTestDuration = time.Duration(runEnv.IntParam(string(paymentTestDurationParam))) * time.Second
 	config.ConcurrentPaymentJobs = uint(runEnv.IntParam(string(concurrentPaymentJobsParam)))
-	config.Validate(uint(runEnv.TestInstanceCount))
-	return config
+	err := config.Validate(uint(runEnv.TestInstanceCount))
+	return config, err
 }
