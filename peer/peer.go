@@ -58,18 +58,18 @@ type MyInfo struct {
 	MessageKey p2pcrypto.PrivKey
 }
 
-func getRole(seq int64, c config.RolesConfig) Role {
+func getRole(seq int64, c config.RunConfig) Role {
 	switch {
-	case seq <= int64(c.AmountHubs):
+	case seq <= int64(c.NumHubs):
 		return Hub
 
-	case seq <= int64(c.AmountHubs+c.Payers):
+	case seq <= int64(c.NumHubs+c.NumPayers):
 		return Payee
 
-	case seq <= int64(c.AmountHubs+c.Payers+c.Payees):
+	case seq <= int64(c.NumHubs+c.NumPayers+c.NumPayees):
 		return Payer
 
-	case seq <= int64(c.AmountHubs+c.Payers+c.Payees+c.PayeePayeers):
+	case seq <= int64(c.NumHubs+c.NumPayers+c.NumPayees+c.NumPayeePayers):
 		return PayerPayee
 
 	default:
@@ -78,7 +78,7 @@ func getRole(seq int64, c config.RolesConfig) Role {
 }
 
 // GenerateMe generates a random  message key/ peer id and returns a PeerInfo
-func GenerateMe(seq int64, c config.RolesConfig, ipAddress string) MyInfo {
+func GenerateMe(seq int64, c config.RunConfig, ipAddress string) MyInfo {
 	role := getRole(seq, c)
 	// We use the sequence in the random source so we generate a unique key even if another client is running at the same time
 	messageKey, _, err := p2pcrypto.GenerateECDSAKeyPair(rand.New(rand.NewSource(time.Now().UnixNano() + seq)))

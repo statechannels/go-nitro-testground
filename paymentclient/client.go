@@ -145,6 +145,11 @@ type PaymentChannel struct {
 	done        bool
 }
 
+// Id returns the channel id of the payment channel
+func (pc *PaymentChannel) Id() types.Destination {
+	return pc.id
+}
+
 // Pay pays the payee the paymentAmount by adding it to the total that will be paid when the channel is settled.
 func (pc *PaymentChannel) Pay(paymentAmount uint) {
 	if pc.done {

@@ -51,10 +51,10 @@ func ConfigureNetworkClient(ctx context.Context, client sync.Client, runEnv *run
 	return net, nil
 }
 
-// RunJob constantly runs some job function for the given duration.
+// RunJobs constantly runs some job function for the given duration.
 // It will spawn a new goroutine calling the job function until the amount
 // of concurrently running jobs is concurrencyTarget.
-func RunJob(job func(), duration time.Duration, concurrencyTarget int64) {
+func RunJobs(job func(), duration time.Duration, concurrencyTarget int64) {
 	// This how long we wait between checking if we can start another job.
 	waitDuration := time.Duration(50 * time.Millisecond)
 
