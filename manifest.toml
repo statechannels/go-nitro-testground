@@ -4,6 +4,7 @@ builder = "exec:go"
 runner = "local:exec"
 
 [builders."docker:go"]
+build_base_image = "golang:1.18-buster"
 enabled = true
 
 [builders."exec:go"]
