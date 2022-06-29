@@ -1,0 +1,276 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_INFLUXDB",
+      "label": "InfluxDB",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "influxdb",
+      "pluginName": "InfluxDB"
+    }
+  ],
+  "__elements": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.5.6"
+    },
+    {
+      "type": "datasource",
+      "id": "influxdb",
+      "name": "InfluxDB",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1656530295501,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB}"
+      },
+      "description": "Displays the amount of proposals in outgoing messages grouped by sender and ledger channel,",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 22,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "sender $tag_sender  ledger $tag_ledger ",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "sender"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "ledger"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "diagnostics.go-nitro-virtual-payment.proposal-count.point",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            },
+            {
+              "condition": "AND",
+              "key": "sender",
+              "operator": "=~",
+              "value": "/^$sender$/"
+            },
+            {
+              "condition": "AND",
+              "key": "ledger",
+              "operator": "=~",
+              "value": "/^$ledger$/"
+            }
+          ]
+        }
+      ],
+      "title": "Amount of proposals in a message",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "definition": "select  run, value FROM \"diagnostics.go-nitro-virtual-payment.message_proposals.point\" where $timeFilter",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "runId",
+        "options": [],
+        "query": "select  run, value FROM \"diagnostics.go-nitro-virtual-payment.message_proposals.point\" where $timeFilter",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "definition": "SELECT sender, value FROM \"diagnostics.go-nitro-virtual-payment.proposal-count.point\" where $timeFilter and run = '$runId'",
+        "hide": 0,
+        "includeAll": false,
+        "multi": true,
+        "name": "sender",
+        "options": [],
+        "query": "SELECT sender, value FROM \"diagnostics.go-nitro-virtual-payment.proposal-count.point\" where $timeFilter and run = '$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "definition": "SELECT ledger, value FROM \"diagnostics.go-nitro-virtual-payment.proposal-count.point\" where $timeFilter and run = '$runId'",
+        "hide": 0,
+        "includeAll": false,
+        "multi": true,
+        "name": "ledger",
+        "options": [],
+        "query": "SELECT ledger, value FROM \"diagnostics.go-nitro-virtual-payment.proposal-count.point\" where $timeFilter and run = '$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "2022-06-29T18:58:11.147Z",
+    "to": "2022-06-29T19:00:22.942Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Message proposals",
+  "uid": "I7rJVu3nk",
+  "version": 2,
+  "weekStart": ""
+}
