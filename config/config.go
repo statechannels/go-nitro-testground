@@ -20,6 +20,7 @@ type RunConfig struct {
 	PaymentTestDuration   time.Duration
 }
 
+//  Validate validates the config values. It uses instanceCount to check that it has the correct amount of roles.
 func (c *RunConfig) Validate(instanceCount uint) error {
 	total := c.NumHubs + c.NumPayeePayers + c.NumPayees + c.NumPayers
 	if total != instanceCount {
@@ -31,6 +32,7 @@ func (c *RunConfig) Validate(instanceCount uint) error {
 	return nil
 }
 
+// GetRunConfig generates a RunConfig by reading the parameters from runEnv
 func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 	config := RunConfig{}
 

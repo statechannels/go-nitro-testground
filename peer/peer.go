@@ -23,6 +23,8 @@ const (
 	PayerPayee
 )
 
+// PeerInfo represents a peer testground instance.
+// It contains information about the peers address and role that instance is playing.
 type PeerInfo struct {
 	Port      int64
 	Id        peer.ID
@@ -31,10 +33,12 @@ type PeerInfo struct {
 	IpAddress string
 }
 
+// IsPayer returns true if the peer's role is a Payer or PayeePayer
 func (p PeerInfo) IsPayer() bool {
 	return p.Role == Payer || p.Role == PayerPayee
 }
 
+// IsPayee returns true if the peer's role is a Payee or PayeePayer
 func (p PeerInfo) IsPayee() bool {
 	return p.Role == Payee || p.Role == PayerPayee
 }
@@ -50,12 +54,14 @@ func (p PeerInfo) MultiAddress() multiaddr.Multiaddr {
 	return a
 }
 
+// MyInfo contains an instance's private information.
 type MyInfo struct {
 	PeerInfo
 	PrivateKey ecdsa.PrivateKey
 	MessageKey p2pcrypto.PrivKey
 }
 
+// getRole determines the role an instance will play based on the run config.
 func getRole(seq int64, c config.RunConfig) Role {
 	switch {
 	case seq <= int64(c.NumHubs):
@@ -98,6 +104,8 @@ func GenerateMe(seq int64, c config.RunConfig, ipAddress string) MyInfo {
 	return MyInfo{PeerInfo: myPeerInfo, PrivateKey: *privateKey, MessageKey: messageKey}
 }
 
+// FilterByRole filters a slice of PeerInfos by the given role.
+// It returns a slice containing peers with the given role.
 func FilterByRole(peers []PeerInfo, role Role) []PeerInfo {
 	filtered := []PeerInfo{}
 	for _, peer := range peers {
@@ -107,5 +115,3 @@ func FilterByRole(peers []PeerInfo, role Role) []PeerInfo {
 	}
 	return filtered
 }
-
-
