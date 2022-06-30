@@ -42,6 +42,8 @@ func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 	config.NetworkLatency = time.Duration(runEnv.IntParam(string(networkLatencyParam))) * time.Millisecond
 	config.PaymentTestDuration = time.Duration(runEnv.IntParam(string(paymentTestDurationParam))) * time.Second
 	config.ConcurrentPaymentJobs = uint(runEnv.IntParam(string(concurrentPaymentJobsParam)))
+	config.PortStart = 7000
 	err := config.Validate(uint(runEnv.TestInstanceCount))
+
 	return config, err
 }
