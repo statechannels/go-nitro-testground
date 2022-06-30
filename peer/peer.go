@@ -1,7 +1,6 @@
 package peer
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"fmt"
 	"math/rand"
@@ -13,7 +12,6 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro/types"
-	"github.com/testground/sdk-go/sync"
 )
 
 type Role = uint
@@ -115,26 +113,4 @@ func SelectRandomPeer(peers []PeerInfo) PeerInfo {
 
 	return peers[randomIndex]
 
-}
-
-// GetPeers will broadcast our peer info to other instances and listen for broadcasts from other instances.
-// It returns a map that contains a PeerInfo for all other instances.
-// The map will not contain a PeerInfo for the current instance.
-func GetPeers(me PeerInfo, ctx context.Context, client sync.Client, instances int) []PeerInfo {
-
-	peerTopic := sync.NewTopic("peer-info", PeerInfo{})
-
-	peers := []PeerInfo{}
-	peerChannel := make(chan *PeerInfo)
-
-	_, _ = client.MustPublishSubscribe(ctx, peerTopic, me, peerChannel)
-
-	for i := 0; i <= instances-1; i++ {
-		t := <-peerChannel
-		// We only add the peer info if it's not ours
-		if t.Address != me.Address {
-			peers = append(peers, *t)
-		}
-	}
-	return peers
 }

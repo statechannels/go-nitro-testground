@@ -47,7 +47,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
 
 	// Broadcasts our info and get peer info from all other instances.
-	peers := peer.GetPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
+	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
 	chainSyncer := chain.NewChainSyncer(me, client, ctx)
 	defer chainSyncer.Close()

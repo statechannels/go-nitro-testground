@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
@@ -86,4 +87,26 @@ func RunJobs(job func(), duration time.Duration, concurrencyTarget int64) {
 // Abbreviate shortens a string to 8 characters and adds an ellipsis.
 func Abbreviate(s fmt.Stringer) string {
 	return s.String()[0:8] + ".."
+}
+
+// SharePeerInfo will broadcast our peer info to other instances and listen for broadcasts from other instances.
+// It returns a slice that contains a PeerInfo for all other instances.
+// The slice will not contain a PeerInfo for the current instance.
+func SharePeerInfo(me peer.PeerInfo, ctx context.Context, client sync.Client, instances int) []peer.PeerInfo {
+
+	peerTopic := sync.NewTopic("peer-info", peer.PeerInfo{})
+
+	peers := []peer.PeerInfo{}
+	peerChannel := make(chan *peer.PeerInfo)
+
+	_, _ = client.MustPublishSubscribe(ctx, peerTopic, me, peerChannel)
+
+	for i := 0; i <= instances-1; i++ {
+		t := <-peerChannel
+		// We only add the peer info if it's not ours
+		if t.Address != me.Address {
+			peers = append(peers, *t)
+		}
+	}
+	return peers
 }
