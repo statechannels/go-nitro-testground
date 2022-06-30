@@ -117,20 +117,17 @@ func SelectRandomPeer(peers []PeerInfo) PeerInfo {
 
 }
 
-// getPeers will broadcast our peer info to other instances and listen for broadcasts from other instances.
+// GetPeers will broadcast our peer info to other instances and listen for broadcasts from other instances.
 // It returns a map that contains a PeerInfo for all other instances.
 // The map will not contain a PeerInfo for the current instance.
 func GetPeers(me PeerInfo, ctx context.Context, client sync.Client, instances int) []PeerInfo {
 
 	peerTopic := sync.NewTopic("peer-info", PeerInfo{})
 
-	// Publish my entry to the topic
-	_, _ = client.Publish(ctx, peerTopic, me)
-
 	peers := []PeerInfo{}
 	peerChannel := make(chan *PeerInfo)
-	// Ready all my peers entries from the topic
-	_, _ = client.Subscribe(ctx, peerTopic, peerChannel)
+
+	_, _ = client.MustPublishSubscribe(ctx, peerTopic, me, peerChannel)
 
 	for i := 0; i <= instances-1; i++ {
 		t := <-peerChannel
