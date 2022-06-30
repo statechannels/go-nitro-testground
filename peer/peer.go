@@ -14,6 +14,9 @@ import (
 	"github.com/statechannels/go-nitro/types"
 )
 
+// START_PORT is the start of the port range we'll use to issue unique ports.
+const START_PORT = 7000
+
 type Role = uint
 
 const (
@@ -99,7 +102,7 @@ func GenerateMe(seq int64, c config.RunConfig, ipAddress string) MyInfo {
 		panic(err)
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
-	port := int64(c.PortStart) + seq
+	port := int64(START_PORT) + seq
 	myPeerInfo := PeerInfo{Id: id, Address: address, Role: role, Port: port, IpAddress: ipAddress}
 	return MyInfo{PeerInfo: myPeerInfo, PrivateKey: *privateKey, MessageKey: messageKey}
 }
