@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 
 	s "sync"
 	"sync/atomic"
@@ -109,4 +110,10 @@ func SharePeerInfo(me peer.PeerInfo, ctx context.Context, client sync.Client, in
 		}
 	}
 	return peers
+}
+
+// SelectRandom selects a random element from a slice.
+func SelectRandom[U ~[]T, T any](collection U) T {
+	randomIndex := rand.Intn(len(collection))
+	return collection[randomIndex]
 }

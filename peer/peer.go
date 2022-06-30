@@ -107,10 +107,5 @@ func FilterByRole(peers []PeerInfo, role Role) []PeerInfo {
 	}
 	return filtered
 }
-func SelectRandomPeer(peers []PeerInfo) PeerInfo {
 
-	randomIndex := rand.Intn(len(peers))
 
-	return peers[randomIndex]
-
-}

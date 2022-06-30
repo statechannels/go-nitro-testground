@@ -76,8 +76,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-			randomHub := peer.SelectRandomPeer(hubs)
-			randomPayee := peer.SelectRandomPeer(payees)
+			randomHub := utils.SelectRandom(hubs)
+			randomPayee := utils.SelectRandom(payees)
 
 			runDetails := fmt.Sprintf("me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
 				me.Address, me.Role, config.NumHubs, config.NumPayers, config.NumPayees, config.NumPayeePayers, config.PaymentTestDuration, config.ConcurrentPaymentJobs, config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds())
