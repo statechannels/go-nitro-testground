@@ -62,7 +62,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1656538683303,
+  "iteration": 1656961312525,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -520,7 +520,7 @@
       },
       "targets": [
         {
-          "alias": "Hub $tag_wallet",
+          "alias": "Hub/Provider $tag_wallet",
           "datasource": {
             "type": "influxdb",
             "uid": "${DS_INFLUXDB}"
@@ -588,7 +588,7 @@
           ]
         }
       ],
-      "title": "Average duration for hub to open virtual channel",
+      "title": "Average duration for hub/provider to open virtual channel",
       "type": "timeseries"
     },
     {
@@ -927,8 +927,8 @@
     ]
   },
   "time": {
-    "from": "2022-06-29T21:46:17.754Z",
-    "to": "2022-06-29T21:46:34.949Z"
+    "from": "2022-07-04T18:55:21.082Z",
+    "to": "2022-07-04T19:02:08.311Z"
   },
   "timepicker": {},
   "timezone": "",
