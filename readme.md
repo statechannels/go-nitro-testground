@@ -9,8 +9,7 @@ There is currently only one test case: [virtual-payment](./tests/virtual-payment
 
 Install testground and build it:
 ```sh
-# This is a fork of the testground repo with support for M1 macs
-git clone https://github.com/statechannels/testground.git
+git clone https://github.com/testground/testground.git
 cd testground
 make install
 
