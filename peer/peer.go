@@ -71,10 +71,10 @@ func getRole(seq int64, c config.RunConfig) Role {
 		return Hub
 
 	case seq <= int64(c.NumHubs+c.NumPayers):
-		return Payee
+		return Payer
 
 	case seq <= int64(c.NumHubs+c.NumPayers+c.NumPayees):
-		return Payer
+		return Payee
 
 	case seq <= int64(c.NumHubs+c.NumPayers+c.NumPayees+c.NumPayeePayers):
 		return PayerPayee
