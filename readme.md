@@ -27,11 +27,14 @@ testground plan import --from ../go-nitro-testground
 ```
 Run the test:
 ```sh
- testground run s -p=go-nitro-testground -t=virtual-payment -b=exec:go -r=local:exec -tp=numOfHubs=2 -i=5 -tp=paymentTestDuration=10 -tp=concurrentPaymentJobs=2
+ testground run s -p=go-nitro-testground -t=virtual-payment -b=exec:go -r=local:exec -tp=numOfHubs=1 -tp=numOfPayers=1 -tp=numOfPayees=2 -tp=numOfPayeePayers=2 -i=6 -tp=paymentTestDuration=10 -tp=concurrentPaymentJobs=2
 ```
 This requests a run of the `virtual-payment` test-case with:
-- `-i=5` 5 instances with their own nitro client
-- `-tp=numOfHubs=2` 2 instances will play the role of hub and act only as a intermediary 
+- `-i=6` 6 separate instances, each with their own nitro client
+- `-tp=numOfHubs=1` 1 instance will play the role of hub and act only as a intermediary 
+- `-tp=numOfPayers=1` 1 instance will play the role of payer and only send payments to payees
+- `-tp=numOfPayees=2` 2 instances will play the role of payee and only accept payments
+- `-tp=numOfPayeePayers=2` 2 instances will play the role of payeepayers and pay and accept payments.
 - `-tp=paymentTestDuration=10` The payment test will run for 10 seconds.
 - `-tp=concurrentPaymentJobs=2` Each non-hub will run two payment jobs.
 - `-b=exec:go` compile locally on this machine

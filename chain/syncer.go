@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/hashstructure"
-	"github.com/statechannels/go-nitro-testground/messaging"
+	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	"github.com/statechannels/go-nitro/client/engine/store/safesync"
 	"github.com/statechannels/go-nitro/protocols"
@@ -28,7 +28,7 @@ type ChainSyncer struct {
 	txListener       chan protocols.ChainTransaction
 	topic            *sync.Topic
 	ctx              context.Context
-	me               messaging.MyInfo
+	me               peer.MyInfo
 	quit             chan struct{}
 }
 
@@ -82,7 +82,7 @@ func (c *ChainSyncer) Close() {
 }
 
 // NewChainSyncer creates a new chain and ChainSyncer and starts syncing with other client chains
-func NewChainSyncer(me messaging.MyInfo, client *sync.DefaultClient, ctx context.Context) *ChainSyncer {
+func NewChainSyncer(me peer.MyInfo, client *sync.DefaultClient, ctx context.Context) *ChainSyncer {
 	txListener := make(chan protocols.ChainTransaction, 1_000_000)
 	topic := sync.NewTopic("chain-transaction", &PeerTransaction{})
 	chain := chainservice.NewMockChainWithTransactionListener(txListener)

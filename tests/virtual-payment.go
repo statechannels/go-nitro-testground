@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/statechannels/go-nitro-testground/chain"
+	c "github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro-testground/paymentclient"
+	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
-	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
@@ -31,20 +32,22 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	// We use seq to determine the role we play and the port for our message service.
 	seq := client.MustSignalAndWait(ctx, sync.State("get seq"), runEnv.TestInstanceCount)
 
-	numOfHubs := int64(runEnv.IntParam("numOfHubs"))
-
 	ip, err := net.GetDataNetworkIP()
 	if err != nil {
 		panic(err)
 	}
-	me := utils.GenerateMe(seq, seq <= numOfHubs, ip.String())
+	config, err := c.GetRunConfig(runEnv)
+	if err != nil {
+		panic(err)
+	}
+	me := peer.GenerateMe(seq, config, ip.String())
 
 	runEnv.RecordMessage("I am %+v", me)
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
 
 	// Broadcasts our info and get peer info from all other instances.
-	peers := utils.GetPeers(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
+	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
 	chainSyncer := chain.NewChainSyncer(me, client, ctx)
 	defer chainSyncer.Close()
@@ -58,45 +61,48 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	pc.ConnectToPeers()
 	client.MustSignalAndWait(ctx, "client connected", runEnv.TestInstanceCount)
 
-	if me.IsHub {
+	if me.Role == peer.Hub {
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	} else {
-
 		// Create ledger channels with all the hubs
-
 		pc.CreateLedgerChannels(1_000_000_000_000)
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
+	}
 
-		testDuration := time.Duration(runEnv.IntParam("paymentTestDuration")) * time.Second
-		jobCount := int64(runEnv.IntParam("concurrentPaymentJobs"))
+	if me.IsPayer() {
+
+		hubs := peer.FilterByRole(peers, peer.Hub)
+		payees := peer.FilterByRole(peers, peer.Payee)
+		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-			randomHub := utils.SelectRandomPeer(utils.FilterPeersByHub(peers, true))
-			randomPayee := utils.SelectRandomPeer(utils.FilterPeersByHub(peers, false))
-			var r virtualfund.ObjectiveResponse
+			randomHub := utils.SelectRandom(hubs)
+			randomPayee := utils.SelectRandom(payees)
 
-			runDetails := fmt.Sprintf("me=%s,amHub=%v,hubs=%d,clients=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
-				me.Address, me.IsHub, numOfHubs, runEnv.TestInstanceCount-int(numOfHubs), testDuration, jobCount, networkJitterMS, networkLatencyMS)
+			runDetails := fmt.Sprintf("me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
+				me.Address, me.Role, config.NumHubs, config.NumPayers, config.NumPayees, config.NumPayeePayers, config.PaymentTestDuration, config.ConcurrentPaymentJobs, config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds())
 
 			var paymentChan *paymentclient.PaymentChannel
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
-				paymentChan = pc.CreatePaymentChannel(randomHub, randomPayee, 100)
+				paymentChan = pc.CreatePaymentChannel(randomHub.Address, randomPayee.Address, 100)
 				paymentChan.Pay(1)
 			})
-			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(r.ChannelId), utils.Abbreviate(randomPayee), utils.Abbreviate(randomHub))
+
+			runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(paymentChan.Id()), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(randomHub.Address))
+
 			for i := 0; i < int(rand.Int63n(5))+5; i++ {
 				minSleep := time.Duration(50 * time.Millisecond)
 				time.Sleep(minSleep + time.Duration(rand.Int63n(int64(time.Millisecond*100))))
 				paymentChan.Pay(uint(rand.Int63n(5)))
 			}
 
-			runEnv.RecordMessage("Closing %s with payment of %d to %s", utils.Abbreviate(r.ChannelId), paymentChan.Total, utils.Abbreviate(randomPayee))
+			runEnv.RecordMessage("Closing %s with payment of %d to %s", utils.Abbreviate(paymentChan.Id()), paymentChan.Total, utils.Abbreviate(randomPayee.Address))
 			paymentChan.Settle()
 
 		}
 
-		utils.RunJob(createVirtualPaymentsJob, testDuration, jobCount)
-
+		// Run the job(s)
+		utils.RunJobs(createVirtualPaymentsJob, config.PaymentTestDuration, int64(config.ConcurrentPaymentJobs))
 	}
 
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)

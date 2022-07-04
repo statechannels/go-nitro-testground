@@ -30,5 +30,8 @@ name = "virtual-payment"
 concurrentPaymentJobs = {type = "int", desc = "The number of concurrent payment jobs a peer should attempt to maintain", default = 1}
 networkJitter = {type = "int", unit = "milliseconds", default = 0}
 networkLatency = {type = "int", unit = "milliseconds", default = 0}
-numOfHubs = {type = "int", default = 1}
+numOfHubs = {type = "int", default = 1, desc = "The number of instances that should play the role of the hub"}
+numOfPayeePayers = {type = "int", default = 0, desc = "The number of instances that should play the role of the payeepayer"}
+numOfPayees = {type = "int", default = 1, desc = "The number of instances that should play the role of the payee"}
+numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
