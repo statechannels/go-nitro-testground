@@ -6,7 +6,7 @@ require (
 	github.com/libp2p/go-libp2p-core v0.16.1
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/multiformats/go-multiaddr v0.5.0
-	github.com/statechannels/go-nitro v0.0.0-20220620170047-d27aecd6cfa4
+	github.com/statechannels/go-nitro v0.0.0-20220630155833-1ca62a9207dc
 )
 
 require (
