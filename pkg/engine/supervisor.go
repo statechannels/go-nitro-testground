@@ -102,7 +102,8 @@ func (e *Engine) worker(n int) {
 				logging.S().Errorw("could not create stop log", "err", err)
 				return
 			}
-			defer f.Close()
+			// TODO: Workaround for https://github.com/testground/testground/issues/1322
+			// defer f.Close()
 
 			ow := rpc.NewFileOutputWriter(f)
 
