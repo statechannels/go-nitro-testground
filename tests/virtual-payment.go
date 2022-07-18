@@ -52,7 +52,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
 	chainSyncer := chain.NewChainSyncer(me, client, ctx)
 	defer chainSyncer.Close()
 
-	pc := paymentclient.NewClient(me, peers, chainSyncer.MockChain(), runEnv.D())
+	pc := paymentclient.NewClient(me, peers, chainSyncer.ChainService(), runEnv.D())
 	defer pc.Close()
 
 	runEnv.RecordMessage("payment client created")
