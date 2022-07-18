@@ -27,7 +27,7 @@ type shareableWithdrawAll struct {
 // ChainSyncer is responsible for keeping a local MockChain in sync with other clients
 type ChainSyncer struct {
 	client           *sync.DefaultClient
-	chain            *chainservice.MockChain
+	chain            chainservice.ChainService
 	seenTransactions safesync.Map[bool]
 	txListener       chan protocols.ChainTransaction
 	depositTopic     *sync.Topic
@@ -79,7 +79,7 @@ func (c *ChainSyncer) replayTransactions() {
 			if seenBefore, _ := c.seenTransactions.Load(fmt.Sprintf("%x", tHash)); !seenBefore {
 				fmt.Printf("ChainSyncer: Replaying shared transaction %+v\n", t)
 
-				c.chain.SendTransaction(protocols.NewDepositTransaction(t.ChannelId, t.Deposit))
+				_ = c.chain.SendTransaction(protocols.NewDepositTransaction(t.ChannelId, t.Deposit))
 				c.seenTransactions.Store(fmt.Sprintf("%x", tHash), true)
 
 			}
@@ -92,7 +92,7 @@ func (c *ChainSyncer) replayTransactions() {
 			}
 			if seenBefore, _ := c.seenTransactions.Load(fmt.Sprintf("%x", tHash)); !seenBefore {
 				fmt.Printf("ChainSyncer: Replaying shared transaction %+v\n", t)
-				c.chain.SendTransaction(protocols.NewWithdrawAllTransaction(t.ChannelId, t.SignedState))
+				_ = c.chain.SendTransaction(protocols.NewWithdrawAllTransaction(t.ChannelId, t.SignedState))
 				c.seenTransactions.Store(fmt.Sprintf("%x", tHash), true)
 
 			}
@@ -110,7 +110,7 @@ func (c *ChainSyncer) Close() {
 func NewChainSyncer(me peer.MyInfo, client *sync.DefaultClient, ctx context.Context) *ChainSyncer {
 	txListener := make(chan protocols.ChainTransaction, 1_000_000)
 
-	chain := chainservice.NewMockChainWithTransactionListener(txListener)
+	chain := chainservice.NewMockChainWithTransactionListener(chainservice.NewMockChain(), me.Address, txListener)
 
 	c := ChainSyncer{
 		seenTransactions: safesync.Map[bool]{},
@@ -129,7 +129,7 @@ func NewChainSyncer(me peer.MyInfo, client *sync.DefaultClient, ctx context.Cont
 	return &c
 }
 
-// Mockchain returns the MockChain instance for this client
-func (c *ChainSyncer) MockChain() *chainservice.MockChain {
+// ChainService returns the ChainService instance for this client
+func (c *ChainSyncer) ChainService() chainservice.ChainService {
 	return c.chain
 }

@@ -32,7 +32,7 @@ type PaymentClient struct {
 }
 
 // NewClient creates a new payment client. It will create a new nitro client as well as a message service to communicate with the peers.
-func NewClient(me peer.MyInfo, peers []peer.PeerInfo, chain *chainservice.MockChain, metrics *runtime.MetricsApi) *PaymentClient {
+func NewClient(me peer.MyInfo, peers []peer.PeerInfo, chain chainservice.ChainService, metrics *runtime.MetricsApi) *PaymentClient {
 
 	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
 
