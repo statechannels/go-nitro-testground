@@ -11,11 +11,12 @@ import (
 	"github.com/statechannels/go-nitro-testground/paymentclient"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
+	"github.com/testground/sdk-go/run"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
 
-func CreateVirtualPaymentTest(runEnv *runtime.RunEnv) error {
+func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, _ *run.InitContext) error {
 	runEnv.D().SetFrequency(1 * time.Second)
 	ctx := context.Background()
 	// instantiate a sync service client, binding it to the RunEnv.
