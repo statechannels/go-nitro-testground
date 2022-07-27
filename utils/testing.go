@@ -18,16 +18,14 @@ import (
 
 // ConfigureNetworkClient sets up the network client for a test run.
 // It will check for the network jitter and latency parameters and adjust the network accordingly.
-func ConfigureNetworkClient(ctx context.Context, client sync.Client, runEnv *runtime.RunEnv, networkJitterMS, networkLatencyMS int) (*network.Client, error) {
-	// instantiate a network client amd wait for it to be ready.
-	net := network.NewClient(client, runEnv)
+func ConfigureNetworkClient(ctx context.Context, netClient *network.Client, syncClient sync.Client, runEnv *runtime.RunEnv, networkJitterMS, networkLatencyMS int) error {
 
 	runEnv.RecordMessage("waiting for network initialization")
-	net.MustWaitNetworkInitialized(ctx)
+	netClient.MustWaitNetworkInitialized(ctx)
 
 	if !runEnv.TestSidecar && (networkJitterMS > 0 || networkLatencyMS > 0) {
 		err := errors.New("can only apply network jitter/latency when running with docker")
-		return nil, err
+		return err
 
 	} else if runEnv.TestSidecar {
 
@@ -45,12 +43,12 @@ func ConfigureNetworkClient(ctx context.Context, client sync.Client, runEnv *run
 			// Set what state the sidecar should signal back to you when it's done.
 			CallbackState: "network-configured",
 		}
-		net.MustConfigureNetwork(ctx, &config)
+		netClient.MustConfigureNetwork(ctx, &config)
 
 	}
 
 	runEnv.RecordMessage("network configured")
-	return net, nil
+	return nil
 }
 
 // RunJobs constantly runs some job function for the given duration.

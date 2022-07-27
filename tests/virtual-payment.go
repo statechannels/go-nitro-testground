@@ -16,23 +16,23 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, _ *run.InitContext) error {
+func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
 	runEnv.D().SetFrequency(1 * time.Second)
 	ctx := context.Background()
-	// instantiate a sync service client, binding it to the RunEnv.
-	client := sync.MustBoundClient(ctx, runEnv)
+
+	client := init.SyncClient
+	net := init.NetClient
+	
 	defer client.Close()
+
 	networkJitterMS, networkLatencyMS := runEnv.IntParam("networkJitter"), runEnv.IntParam("networkLatency")
 	// instantiate a network client amd wait for it to be ready.
-	net, err := utils.ConfigureNetworkClient(ctx, client, runEnv, networkJitterMS, networkLatencyMS)
+	err := utils.ConfigureNetworkClient(ctx, net, client, runEnv, networkJitterMS, networkLatencyMS)
 	if err != nil {
 		panic(err)
 	}
 
-	// This generates a unique sequence number for this test instance.
-	// We use seq to determine the role we play and the port for our message service.
-	seq := client.MustSignalAndWait(ctx, sync.State("get seq"), runEnv.TestInstanceCount)
-
+	seq := init.GlobalSeq
 	ip, err := net.GetDataNetworkIP()
 	if err != nil {
 		panic(err)
