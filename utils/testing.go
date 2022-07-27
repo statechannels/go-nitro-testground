@@ -16,8 +16,7 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-// ConfigureNetworkClient sets up the network client for a test run.
-// It will check for the network jitter and latency parameters and adjust the network accordingly.
+// ConfigureNetworkClient configures a network client with the given jitter and latency settings.
 func ConfigureNetworkClient(ctx context.Context, netClient *network.Client, syncClient sync.Client, runEnv *runtime.RunEnv, networkJitterMS, networkLatencyMS int) error {
 
 	runEnv.RecordMessage("waiting for network initialization")
