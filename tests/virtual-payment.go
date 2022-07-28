@@ -22,8 +22,6 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	client := init.SyncClient
 	net := init.NetClient
-	
-	defer client.Close()
 
 	networkJitterMS, networkLatencyMS := runEnv.IntParam("networkJitter"), runEnv.IntParam("networkLatency")
 	// instantiate a network client amd wait for it to be ready.
