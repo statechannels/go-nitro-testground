@@ -26,7 +26,7 @@ type shareableWithdrawAll struct {
 
 // ChainSyncer is responsible for keeping a local MockChain in sync with other clients
 type ChainSyncer struct {
-	client           *sync.DefaultClient
+	client           sync.Client
 	chain            chainservice.ChainService
 	seenTransactions safesync.Map[bool]
 	txListener       chan protocols.ChainTransaction
@@ -107,7 +107,7 @@ func (c *ChainSyncer) Close() {
 }
 
 // NewChainSyncer creates a new chain and ChainSyncer and starts syncing with other client chains
-func NewChainSyncer(me peer.MyInfo, client *sync.DefaultClient, ctx context.Context) *ChainSyncer {
+func NewChainSyncer(me peer.MyInfo, client sync.Client, ctx context.Context) *ChainSyncer {
 	txListener := make(chan protocols.ChainTransaction, 1_000_000)
 
 	chain := chainservice.NewMockChainWithTransactionListener(chainservice.NewMockChain(), me.Address, txListener)
