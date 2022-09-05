@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/multiformats/go-multiaddr v0.6.0
-	github.com/statechannels/go-nitro v0.0.0-20220718121907-61180ba39b32
+	github.com/statechannels/go-nitro v0.0.0-20220905081307-c5611e8c9e48
 )
 
 require (
