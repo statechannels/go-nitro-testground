@@ -29,6 +29,9 @@ Run the test:
 ```sh
  testground run s -p=go-nitro-testground -t=virtual-payment -b=exec:go -r=local:exec -tp=numOfHubs=1 -tp=numOfPayers=1 -tp=numOfPayees=2 -tp=numOfPayeePayers=2 -i=6 -tp=paymentTestDuration=10 -tp=concurrentPaymentJobs=2
 ```
+
+**Note**: Testground uses [goproxy](https://goproxy.io/) to cache dependencies in a docker container. The first test run can be slow or timeout due to goproxy populating its cache. Subsequent runs should be much faster.
+
 This requests a run of the `virtual-payment` test-case with:
 - `-i=6` 6 separate instances, each with their own nitro client
 - `-tp=numOfHubs=1` 1 instance will play the role of hub and act only as a intermediary 
