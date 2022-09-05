@@ -76,15 +76,14 @@ func (c *PaymentClient) CreateLedgerChannels(amount uint) {
 			},
 		}}
 
-		request := directfund.ObjectiveRequest{
+		request := directfund.ObjectiveRequestForConsensusApp{
 			CounterParty:      p.Address,
 			Outcome:           outcome,
-			AppDefinition:     types.Address{},
-			AppData:           types.Bytes{},
 			ChallengeDuration: big.NewInt(0),
 			Nonce:             rand.Int63(),
 		}
-		r := c.client.CreateDirectChannel(request)
+
+		r := c.client.CreateLedgerChannel(request)
 		ids = append(ids, r.Id)
 	}
 	c.cm.waitForObjectivesToComplete(ids)
