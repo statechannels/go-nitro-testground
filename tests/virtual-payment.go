@@ -48,10 +48,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// Broadcasts our info and get peer info from all other instances.
 	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
-	chainSyncer := chain.NewChainSyncer(me, client, ctx)
-	defer chainSyncer.Close()
-
-	pc := paymentclient.NewClient(me, peers, chainSyncer.ChainService(), runEnv.D())
+	pc := paymentclient.NewClient(me, peers, chain.NewChainService(seq), runEnv.D())
 	defer pc.Close()
 
 	runEnv.RecordMessage("payment client created")
