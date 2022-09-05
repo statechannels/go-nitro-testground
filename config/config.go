@@ -19,7 +19,7 @@ type RunConfig struct {
 	PaymentTestDuration   time.Duration
 }
 
-//  Validate validates the config values. It uses instanceCount to check that it has the correct amount of roles.
+// Validate validates the config values. It uses instanceCount to check that it has the correct amount of roles.
 func (c *RunConfig) Validate(instanceCount uint) error {
 	total := c.NumHubs + c.NumPayeePayers + c.NumPayees + c.NumPayers
 	if total != instanceCount {
