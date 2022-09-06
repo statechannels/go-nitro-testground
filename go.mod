@@ -3,7 +3,6 @@ module github.com/statechannels/go-nitro-testground
 go 1.19
 
 require (
-	github.com/mitchellh/hashstructure v1.1.0
 	github.com/multiformats/go-multiaddr v0.6.0
 	github.com/statechannels/go-nitro v0.0.0-20220909202206-e70703cba68d
 )
