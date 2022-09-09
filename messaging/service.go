@@ -137,7 +137,6 @@ func (s *P2PMessageService) connectToPeers() {
 		case m := <-s.in:
 			raw, err := m.Serialize()
 			s.checkError(err)
-			s.recordOutgoingStats(m)
 			writer := bufio.NewWriter(peerStreams[m.To])
 			_, err = writer.WriteString(raw)
 			s.checkError(err)
@@ -180,15 +179,4 @@ func (s *P2PMessageService) Close() {
 	close(s.quit)
 	s.p2pHost.Close()
 
-}
-
-func (s *P2PMessageService) recordOutgoingStats(m protocols.Message) {
-	proposalCount := len(m.SignedProposals())
-	if proposalCount > 0 {
-
-		first := m.SignedProposals()[0]
-		point := fmt.Sprintf("proposal-count,sender=%s,receiver=%s,ledger=%s", s.me.Address, m.To, first.Payload.Proposal.LedgerID)
-		s.metrics.RecordPoint(point, float64(proposalCount))
-
-	}
 }

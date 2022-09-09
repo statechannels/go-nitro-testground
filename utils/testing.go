@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"math/rand"
 
 	s "sync"
@@ -11,6 +12,11 @@ import (
 	"time"
 
 	"github.com/statechannels/go-nitro-testground/peer"
+	"github.com/statechannels/go-nitro/channel/state/outcome"
+	nitro "github.com/statechannels/go-nitro/client"
+	"github.com/statechannels/go-nitro/protocols"
+	"github.com/statechannels/go-nitro/protocols/directfund"
+	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
@@ -113,4 +119,42 @@ func SharePeerInfo(me peer.PeerInfo, ctx context.Context, client sync.Client, in
 func SelectRandom[U ~[]T, T any](collection U) T {
 	randomIndex := rand.Intn(len(collection))
 	return collection[randomIndex]
+}
+
+// CreateLedgerChannels creates a directly funded ledger channel with each hub in hubs.
+// The funding for each channel will be set to amount for both participants.
+// this function blocks until all ledger channels have successfully been created.
+func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) {
+	ids := []protocols.ObjectiveId{}
+
+	for _, p := range peers {
+		if p.Role != peer.Hub {
+			continue
+		}
+		outcome := outcome.Exit{outcome.SingleAssetExit{
+			Allocations: outcome.Allocations{
+				outcome.Allocation{
+					Destination: types.AddressToDestination(me.Address),
+					Amount:      big.NewInt(int64(amount)),
+				},
+				outcome.Allocation{
+					Destination: types.AddressToDestination(p.Address),
+					Amount:      big.NewInt(int64(amount)),
+				},
+			},
+		}}
+
+		request := directfund.ObjectiveRequestForConsensusApp{
+			CounterParty: p.Address,
+			Outcome:      outcome,
+
+			ChallengeDuration: big.NewInt(0),
+			Nonce:             rand.Int63(),
+		}
+		r := client.CreateLedgerChannel(request)
+		ids = append(ids, r.Id)
+	}
+
+	cm.WaitForObjectivesToComplete(ids)
+
 }
