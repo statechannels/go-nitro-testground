@@ -124,9 +124,9 @@ func SelectRandom[U ~[]T, T any](collection U) T {
 // CreateLedgerChannels creates a directly funded ledger channel with each hub in hubs.
 // The funding for each channel will be set to amount for both participants.
 // This function blocks until all ledger channels have successfully been created.
-func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) {
+func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) []types.Destination {
 	ids := []protocols.ObjectiveId{}
-
+	cIds := []types.Destination{}
 	for _, p := range peers {
 		if p.Role != peer.Hub {
 			continue
@@ -152,9 +152,10 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 			Nonce:             rand.Int63(),
 		}
 		r := client.CreateLedgerChannel(request)
+		cIds = append(cIds, r.ChannelId)
 		ids = append(ids, r.Id)
 	}
 
 	cm.WaitForObjectivesToComplete(ids)
-
+	return cIds
 }

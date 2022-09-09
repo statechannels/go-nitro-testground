@@ -81,11 +81,13 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	ms.DialPeers()
 	client.MustSignalAndWait(ctx, "client connected", runEnv.TestInstanceCount)
 
+	ledgerIds := []types.Destination{}
+
 	if me.Role == peer.Hub {
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	} else {
 		// Create ledger channels with all the hubs
-		utils.CreateLedgerChannels(nClient, cm, FINNEY_IN_WEI, me.PeerInfo, peers)
+		ledgerIds = utils.CreateLedgerChannels(nClient, cm, FINNEY_IN_WEI, me.PeerInfo, peers)
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	}
 
@@ -164,6 +166,18 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, config.PaymentTestDuration, int64(config.ConcurrentPaymentJobs))
+		// TODO: Closing a ledger channel too soon after closing a virtual channel seems to fail.
+		time.Sleep(time.Duration(250 * time.Millisecond))
+		// Close all the ledger channels with the hub
+		oIds := []protocols.ObjectiveId{}
+		for _, ledgerId := range ledgerIds {
+			runEnv.RecordMessage("Closing ledger %s", utils.Abbreviate(ledgerId))
+			oId := nClient.CloseLedgerChannel(ledgerId)
+			oIds = append(oIds, oId)
+		}
+		cm.WaitForObjectivesToComplete(oIds)
+		runEnv.RecordMessage("All ledger channels closed")
+		// TODO: Check balances on chain
 	}
 
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
