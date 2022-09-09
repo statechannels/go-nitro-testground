@@ -136,14 +136,13 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			})
 
 			for i := 0; i < int(rand.Int63n(5))+5; i++ {
-				minSleep := time.Duration(50 * time.Millisecond)
-				time.Sleep(minSleep + time.Duration(rand.Int63n(int64(time.Millisecond*100))))
 				nClient.Pay(channelId, big.NewInt((rand.Int63n(5))))
 			}
 
 			// TODO: get payment balance and output it to the log
 			runEnv.RecordMessage("Closing %s with payment to %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address))
 			nClient.CloseVirtualChannel(channelId)
+
 		}
 
 		// Run the job(s)
