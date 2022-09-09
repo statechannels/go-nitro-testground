@@ -139,6 +139,10 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 				nClient.Pay(channelId, big.NewInt((rand.Int63n(5))))
 			}
 
+			// TODO: If we attempt to close a virtual channel too fast we can cause other clients to fail.
+			// See https://github.com/statechannels/go-nitro/issues/744
+			time.Sleep(time.Duration(250 * time.Millisecond))
+
 			// TODO: get payment balance and output it to the log
 			runEnv.RecordMessage("Closing %s with payment to %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address))
 			nClient.CloseVirtualChannel(channelId)
