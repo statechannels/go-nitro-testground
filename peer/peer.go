@@ -24,7 +24,6 @@ const (
 	Payer
 	Payee
 	PayerPayee
-	Chain
 )
 
 // PeerInfo represents a peer testground instance.
@@ -68,8 +67,6 @@ type MyInfo struct {
 // getRole determines the role an instance will play based on the run config.
 func getRole(seq int64, c config.RunConfig) Role {
 	switch {
-	case seq == 0:
-		return Chain
 	case seq <= int64(c.NumHubs):
 		return Hub
 
