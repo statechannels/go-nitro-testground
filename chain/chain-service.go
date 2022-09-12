@@ -2,7 +2,7 @@ package chain
 
 import (
 	"context"
-	"fmt"
+	"io"
 	"log"
 	"math/big"
 
@@ -14,13 +14,7 @@ import (
 	NitroAdjudicator "github.com/statechannels/go-nitro/client/engine/chainservice/adjudicator"
 )
 
-type logger struct{}
-
-func (l logger) Write(p []byte) (n int, err error) {
-	return fmt.Printf("%s", p)
-}
-
-func NewChainService(seq int64) chainservice.ChainService {
+func NewChainService(seq int64, logDestination io.Writer) chainservice.ChainService {
 	client, err := ethclient.Dial("ws://hardhat:8545/")
 	if err != nil {
 		log.Fatal(err)
@@ -52,7 +46,7 @@ func NewChainService(seq int64) chainservice.ChainService {
 	}
 	txSubmitter.GasPrice = gasPrice
 
-	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, txSubmitter, logger{})
+	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, txSubmitter, logDestination)
 	if err != nil {
 		log.Fatal(err)
 	}
