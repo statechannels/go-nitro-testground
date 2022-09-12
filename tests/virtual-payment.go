@@ -59,9 +59,6 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// Broadcasts our info and get peer info from all other instances.
 	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
-	chainSyncer := chain.NewChainSyncer(me, client, ctx)
-	defer chainSyncer.Close()
-
 	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
 
 	ms := m.NewP2PMessageService(me, peers, runEnv.D())
@@ -69,7 +66,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// The outputs folder will be copied when results are collected.
 	logDestination, _ := os.OpenFile("./outputs/nitro-client.log", os.O_CREATE|os.O_WRONLY, 0666)
 
-	nClient := nitro.New(ms, chainSyncer.ChainService(), store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
+	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
 	cm := utils.NewCompletionMonitor(&nClient)
 	defer cm.Close()
 	runEnv.RecordMessage("payment client created")
