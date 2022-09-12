@@ -33,7 +33,9 @@ func NewChainService(seq int64) chainservice.ChainService {
 		log.Fatal(err)
 	}
 
-	// todo: check that index is within range
+	if seq > int64(len(pks)) {
+		log.Fatal("the number of testground instances is greater than the number of hardhat private keys")
+	}
 	pk, err := crypto.HexToECDSA(pks[seq])
 	if err != nil {
 		log.Fatal(err)
