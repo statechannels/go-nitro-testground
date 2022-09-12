@@ -1,4 +1,4 @@
-package paymentclient
+package utils
 
 import (
 	"time"
@@ -11,18 +11,18 @@ import (
 const SLEEP_TIME = time.Microsecond * 500
 
 // CompletionMonitor is a struct used to watch for objective completion
-type completionMonitor struct {
+type CompletionMonitor struct {
 	completed *safesync.Map[bool]
 	client    *nitroclient.Client
 	quit      chan struct{}
 }
 
 // NewCompletionMonitor creates a new completion monitor
-func newCompletionMonitor(client *nitroclient.Client) *completionMonitor {
+func NewCompletionMonitor(client *nitroclient.Client) *CompletionMonitor {
 
 	completed := safesync.Map[bool]{}
 
-	c := &completionMonitor{
+	c := &CompletionMonitor{
 		completed: &completed,
 		client:    client,
 		quit:      make(chan struct{}),
@@ -32,7 +32,7 @@ func newCompletionMonitor(client *nitroclient.Client) *completionMonitor {
 }
 
 // checks whether the given objectives are complete
-func (c *completionMonitor) done(ids []protocols.ObjectiveId) bool {
+func (c *CompletionMonitor) done(ids []protocols.ObjectiveId) bool {
 
 	for _, id := range ids {
 		isComplete, _ := c.completed.Load(string(id))
@@ -45,7 +45,7 @@ func (c *completionMonitor) done(ids []protocols.ObjectiveId) bool {
 }
 
 // watch runs in a gofunc and listens to the CompletedObjectives chan
-func (c *completionMonitor) watch() {
+func (c *CompletionMonitor) watch() {
 	for {
 		select {
 		case id := <-c.client.CompletedObjectives():
@@ -56,8 +56,8 @@ func (c *completionMonitor) watch() {
 	}
 }
 
-// waitForObjectivesToComplete blocks until all objectives are completed
-func (c *completionMonitor) waitForObjectivesToComplete(ids []protocols.ObjectiveId) {
+// WaitForObjectivesToComplete blocks until all objectives are completed
+func (c *CompletionMonitor) WaitForObjectivesToComplete(ids []protocols.ObjectiveId) {
 	for {
 
 		if c.done(ids) {
@@ -68,7 +68,7 @@ func (c *completionMonitor) waitForObjectivesToComplete(ids []protocols.Objectiv
 	}
 }
 
-// close stops the completion monitor from listening to the CompletedObjectives chan
-func (c *completionMonitor) close() {
+// Close stops the completion monitor from listening to the CompletedObjectives chan
+func (c *CompletionMonitor) Close() {
 	close(c.quit)
 }

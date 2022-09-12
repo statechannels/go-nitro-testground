@@ -5,11 +5,10 @@ go 1.19
 require (
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/multiformats/go-multiaddr v0.6.0
-	github.com/statechannels/go-nitro v0.0.0-20220905081307-c5611e8c9e48
+	github.com/statechannels/go-nitro v0.0.0-20220909202206-e70703cba68d
 )
 
 require (
-	github.com/DistributedClocks/GoVector v0.0.0-20210402100930-db949c81a0af // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/avast/retry-go v2.6.0+incompatible // indirect
@@ -17,7 +16,6 @@ require (
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
-	github.com/daviddengcn/go-colortext v1.0.0 // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
@@ -103,8 +101,6 @@ require (
 	github.com/testground/testground v0.5.3 // indirect
 	github.com/tklauser/go-sysconf v0.3.5 // indirect
 	github.com/tklauser/numcpus v0.2.2 // indirect
-	github.com/vmihailenco/msgpack/v5 v5.1.4 // indirect
-	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220812174116-3211cb980234 // indirect
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
