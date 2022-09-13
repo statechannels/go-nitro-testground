@@ -73,7 +73,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	logDestination, _ := os.OpenFile("./outputs/nitro-client.log", os.O_CREATE|os.O_WRONLY, 0666)
 
 	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
-	cm := utils.NewCompletionMonitor(&nClient)
+	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
 	runEnv.RecordMessage("payment client created")
 	// We wait until everyone has chosen an address.

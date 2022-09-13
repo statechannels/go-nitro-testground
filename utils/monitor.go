@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"time"
 
 	nitroclient "github.com/statechannels/go-nitro/client"
@@ -16,10 +15,11 @@ type CompletionMonitor struct {
 	completed *safesync.Map[bool]
 	client    *nitroclient.Client
 	quit      chan struct{}
+	log       func(msg string, a ...interface{})
 }
 
 // NewCompletionMonitor creates a new completion monitor
-func NewCompletionMonitor(client *nitroclient.Client) *CompletionMonitor {
+func NewCompletionMonitor(client *nitroclient.Client, logFunc func(msg string, a ...interface{})) *CompletionMonitor {
 
 	completed := safesync.Map[bool]{}
 
@@ -27,6 +27,7 @@ func NewCompletionMonitor(client *nitroclient.Client) *CompletionMonitor {
 		completed: &completed,
 		client:    client,
 		quit:      make(chan struct{}),
+		log:       logFunc,
 	}
 	go c.watch()
 	return c
@@ -55,7 +56,7 @@ func (c *CompletionMonitor) watch() {
 			return
 		// It is important to read from client.ReceivedVouchers otherwise the client can get blocked
 		case v := <-c.client.ReceivedVouchers():
-			fmt.Printf("Received payment of %d wei on channel %s", v.Amount.Int64(), v.ChannelId)
+			c.log("Received payment of %d wei on channel %s", v.Amount.Int64(), v.ChannelId)
 		}
 	}
 }
