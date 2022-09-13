@@ -149,7 +149,7 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 			Outcome:      outcome,
 
 			ChallengeDuration: big.NewInt(0),
-			Nonce:             rand.Int63(),
+			Nonce:             int64(rand.Int31()),
 		}
 		r := client.CreateLedgerChannel(request)
 		cIds = append(cIds, r.ChannelId)
