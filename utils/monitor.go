@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"time"
 
 	nitroclient "github.com/statechannels/go-nitro/client"
@@ -52,6 +53,9 @@ func (c *CompletionMonitor) watch() {
 			c.completed.Store(string(id), true)
 		case <-c.quit:
 			return
+		// It is important to read from client.ReceivedVouchers otherwise the client can get blocked
+		case v := <-c.client.ReceivedVouchers():
+			fmt.Printf("Received payment of %d wei on channel %s", v.Amount.Int64(), v.ChannelId)
 		}
 	}
 }
