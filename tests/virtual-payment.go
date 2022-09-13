@@ -28,9 +28,9 @@ import (
 )
 
 const (
-	SZABO_IN_WEI = 1000000000000
-	GWEI_IN_WEI  = 1000000000
-	KWEI_IN_WEI  = 1000
+	FINNEY_IN_WEI = 1000000000000000
+	GWEI_IN_WEI   = 1000000000
+	KWEI_IN_WEI   = 1000
 )
 
 func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
@@ -85,7 +85,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	} else {
 		// Create ledger channels with all the hubs
-		utils.CreateLedgerChannels(nClient, cm, SZABO_IN_WEI, me.PeerInfo, peers)
+		utils.CreateLedgerChannels(nClient, cm, FINNEY_IN_WEI, me.PeerInfo, peers)
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	}
 
