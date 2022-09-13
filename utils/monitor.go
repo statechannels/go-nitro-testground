@@ -15,10 +15,11 @@ type CompletionMonitor struct {
 	completed *safesync.Map[bool]
 	client    *nitroclient.Client
 	quit      chan struct{}
+	log       func(msg string, a ...interface{})
 }
 
 // NewCompletionMonitor creates a new completion monitor
-func NewCompletionMonitor(client *nitroclient.Client) *CompletionMonitor {
+func NewCompletionMonitor(client *nitroclient.Client, logFunc func(msg string, a ...interface{})) *CompletionMonitor {
 
 	completed := safesync.Map[bool]{}
 
@@ -26,6 +27,7 @@ func NewCompletionMonitor(client *nitroclient.Client) *CompletionMonitor {
 		completed: &completed,
 		client:    client,
 		quit:      make(chan struct{}),
+		log:       logFunc,
 	}
 	go c.watch()
 	return c
@@ -52,6 +54,9 @@ func (c *CompletionMonitor) watch() {
 			c.completed.Store(string(id), true)
 		case <-c.quit:
 			return
+		// It is important to read from client.ReceivedVouchers otherwise the client can get blocked
+		case v := <-c.client.ReceivedVouchers():
+			c.log("Received payment of %d wei on channel %s", v.Amount.Int64(), v.ChannelId)
 		}
 	}
 }

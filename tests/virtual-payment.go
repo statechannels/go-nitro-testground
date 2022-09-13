@@ -27,6 +27,12 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
+const (
+	FINNEY_IN_WEI = 1000000000000000
+	GWEI_IN_WEI   = 1000000000
+	KWEI_IN_WEI   = 1000
+)
+
 func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
 	runEnv.D().SetFrequency(1 * time.Second)
 	ctx := context.Background()
@@ -67,7 +73,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	logDestination, _ := os.OpenFile("./outputs/nitro-client.log", os.O_CREATE|os.O_WRONLY, 0666)
 
 	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
-	cm := utils.NewCompletionMonitor(&nClient)
+	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
 	runEnv.RecordMessage("payment client created")
 	// We wait until everyone has chosen an address.
@@ -79,7 +85,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	} else {
 		// Create ledger channels with all the hubs
-		utils.CreateLedgerChannels(nClient, cm, 1_000_000_000_000, me.PeerInfo, peers)
+		utils.CreateLedgerChannels(nClient, cm, FINNEY_IN_WEI, me.PeerInfo, peers)
 		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	}
 
@@ -103,7 +109,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 					Allocations: outcome.Allocations{
 						outcome.Allocation{
 							Destination: types.AddressToDestination(me.Address),
-							Amount:      big.NewInt(int64(100)),
+							Amount:      big.NewInt(int64(10 * GWEI_IN_WEI)),
 						},
 						outcome.Allocation{
 							Destination: types.AddressToDestination(randomPayee.Address),
@@ -128,12 +134,22 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 				runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(randomHub.Address))
 
-				nClient.Pay(r.ChannelId, big.NewInt(int64(1)))
+				paymentAmount := big.NewInt(KWEI_IN_WEI)
+				nClient.Pay(r.ChannelId, paymentAmount)
+				runEnv.RecordMessage("Sent payment of %d  wei to %s using channel %s", paymentAmount.Int64(), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(channelId))
+
 				// TODO: Should we wait for receipt of this payment before stopping the time_to_first_payment timer?
 			})
 
-			for i := 0; i < int(rand.Int63n(5))+5; i++ {
-				nClient.Pay(channelId, big.NewInt((rand.Int63n(5))))
+			// Perform between 1 and 5 payments additional payments
+			amountOfPayments := 1 + rand.Intn(4)
+			for i := 0; i < amountOfPayments; i++ {
+				// pay between 1 and 2 kwei
+				paymentAmount := big.NewInt(KWEI_IN_WEI + (rand.Int63n(KWEI_IN_WEI)))
+				nClient.Pay(channelId, paymentAmount)
+
+				runEnv.RecordMessage("Sent payment of %d wei to %s using channel %s", paymentAmount.Int64(), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(channelId))
+
 			}
 
 			// TODO: If we attempt to close a virtual channel too fast we can cause other clients to fail.
