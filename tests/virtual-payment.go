@@ -127,7 +127,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 					AppDefinition:     types.Address{},
 					AppData:           types.Bytes{},
 					ChallengeDuration: big.NewInt(0),
-					Nonce:             rand.Int63(),
+					Nonce:             int64(rand.Int31()),
 				}
 
 				r := nClient.CreateVirtualChannel(request)
