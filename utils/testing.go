@@ -16,10 +16,17 @@ import (
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/directfund"
+	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
+)
+
+const (
+	FINNEY_IN_WEI = 1000000000000000
+	GWEI_IN_WEI   = 1000000000
+	KWEI_IN_WEI   = 1000
 )
 
 // ConfigureNetworkClient configures a network client with the given jitter and latency settings.
@@ -124,9 +131,9 @@ func SelectRandom[U ~[]T, T any](collection U) T {
 // CreateLedgerChannels creates a directly funded ledger channel with each hub in hubs.
 // The funding for each channel will be set to amount for both participants.
 // This function blocks until all ledger channels have successfully been created.
-func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) {
+func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) []types.Destination {
 	ids := []protocols.ObjectiveId{}
-
+	cIds := []types.Destination{}
 	for _, p := range peers {
 		if p.Role != peer.Hub {
 			continue
@@ -149,12 +156,39 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 			Outcome:      outcome,
 
 			ChallengeDuration: big.NewInt(0),
-			Nonce:             rand.Int63(),
+			Nonce:             int64(rand.Int31()),
 		}
 		r := client.CreateLedgerChannel(request)
+		cIds = append(cIds, r.ChannelId)
 		ids = append(ids, r.Id)
 	}
 
 	cm.WaitForObjectivesToComplete(ids)
+	return cIds
+}
 
+// GenerateVirtualFundObjectiveRequest generates a virtual channel request  with 10 gwei in funding
+func GenerateVirtualFundObjectiveRequest(me, payee, hub types.Address) virtualfund.ObjectiveRequest {
+	outcome := outcome.Exit{outcome.SingleAssetExit{
+		Allocations: outcome.Allocations{
+			outcome.Allocation{
+				Destination: types.AddressToDestination(me),
+				Amount:      big.NewInt(int64(10 * GWEI_IN_WEI)),
+			},
+			outcome.Allocation{
+				Destination: types.AddressToDestination(payee),
+				Amount:      big.NewInt(0),
+			},
+		},
+	}}
+
+	return virtualfund.ObjectiveRequest{
+		CounterParty:      payee,
+		Intermediary:      hub,
+		Outcome:           outcome,
+		AppDefinition:     types.Address{},
+		AppData:           types.Bytes{},
+		ChallengeDuration: big.NewInt(0),
+		Nonce:             int64(rand.Int31()),
+	}
 }
