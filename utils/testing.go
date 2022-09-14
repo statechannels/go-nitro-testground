@@ -16,10 +16,17 @@ import (
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/protocols"
 	"github.com/statechannels/go-nitro/protocols/directfund"
+	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
+)
+
+const (
+	FINNEY_IN_WEI = 1000000000000000
+	GWEI_IN_WEI   = 1000000000
+	KWEI_IN_WEI   = 1000
 )
 
 // ConfigureNetworkClient configures a network client with the given jitter and latency settings.
@@ -158,4 +165,30 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 
 	cm.WaitForObjectivesToComplete(ids)
 	return cIds
+}
+
+// GenerateVirtualFundObjectiveRequest generates a virtual channel request  with 10 gwei in funding
+func GenerateVirtualFundObjectiveRequest(me, payee, hub types.Address) virtualfund.ObjectiveRequest {
+	outcome := outcome.Exit{outcome.SingleAssetExit{
+		Allocations: outcome.Allocations{
+			outcome.Allocation{
+				Destination: types.AddressToDestination(me),
+				Amount:      big.NewInt(int64(10 * GWEI_IN_WEI)),
+			},
+			outcome.Allocation{
+				Destination: types.AddressToDestination(payee),
+				Amount:      big.NewInt(0),
+			},
+		},
+	}}
+
+	return virtualfund.ObjectiveRequest{
+		CounterParty:      payee,
+		Intermediary:      hub,
+		Outcome:           outcome,
+		AppDefinition:     types.Address{},
+		AppData:           types.Bytes{},
+		ChallengeDuration: big.NewInt(0),
+		Nonce:             int64(rand.Int31()),
+	}
 }

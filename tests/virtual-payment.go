@@ -14,23 +14,15 @@ import (
 	m "github.com/statechannels/go-nitro-testground/messaging"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
-	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/client/engine"
 	"github.com/statechannels/go-nitro/client/engine/store"
 	"github.com/statechannels/go-nitro/protocols"
 
-	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/run"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
-)
-
-const (
-	FINNEY_IN_WEI = 1000000000000000
-	GWEI_IN_WEI   = 1000000000
-	KWEI_IN_WEI   = 1000
 )
 
 func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
@@ -48,10 +40,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	}
 
 	seq := init.GlobalSeq
-	ip, err := net.GetDataNetworkIP()
-	if err != nil {
-		panic(err)
-	}
+	ip := net.MustGetDataNetworkIP()
+
 	config, err := c.GetRunConfig(runEnv)
 	if err != nil {
 		panic(err)
@@ -59,6 +49,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	me := peer.GenerateMe(seq, config, ip.String())
 
 	runEnv.RecordMessage("I am %+v", me)
+
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
 
@@ -73,23 +64,25 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	logDestination, _ := os.OpenFile("./outputs/nitro-client.log", os.O_CREATE|os.O_WRONLY, 0666)
 
 	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
+
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
-	runEnv.RecordMessage("payment client created")
+
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "client created", runEnv.TestInstanceCount)
+
 	ms.DialPeers()
-	client.MustSignalAndWait(ctx, "client connected", runEnv.TestInstanceCount)
+	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
 	ledgerIds := []types.Destination{}
 
-	if me.Role == peer.Hub {
-		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
-	} else {
+	if me.Role != peer.Hub {
 		// Create ledger channels with all the hubs
-		ledgerIds = utils.CreateLedgerChannels(nClient, cm, FINNEY_IN_WEI, me.PeerInfo, peers)
-		client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
+		ledgerIds = utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
+
 	}
+
+	client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 
 	if me.IsPayer() {
 
@@ -107,36 +100,15 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			var channelId types.Destination
 			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
 
-				outcome := outcome.Exit{outcome.SingleAssetExit{
-					Allocations: outcome.Allocations{
-						outcome.Allocation{
-							Destination: types.AddressToDestination(me.Address),
-							Amount:      big.NewInt(int64(10 * GWEI_IN_WEI)),
-						},
-						outcome.Allocation{
-							Destination: types.AddressToDestination(randomPayee.Address),
-							Amount:      big.NewInt(0),
-						},
-					},
-				}}
-
-				request := virtualfund.ObjectiveRequest{
-					CounterParty:      randomPayee.Address,
-					Intermediary:      randomHub.Address,
-					Outcome:           outcome,
-					AppDefinition:     types.Address{},
-					AppData:           types.Bytes{},
-					ChallengeDuration: big.NewInt(0),
-					Nonce:             int64(rand.Int31()),
-				}
-
+				request := utils.GenerateVirtualFundObjectiveRequest(me.Address, randomPayee.Address, randomHub.Address)
 				r := nClient.CreateVirtualChannel(request)
+
 				channelId = r.ChannelId
 				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
 
 				runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(randomHub.Address))
 
-				paymentAmount := big.NewInt(KWEI_IN_WEI)
+				paymentAmount := big.NewInt(utils.KWEI_IN_WEI)
 				nClient.Pay(r.ChannelId, paymentAmount)
 				runEnv.RecordMessage("Sent payment of %d  wei to %s using channel %s", paymentAmount.Int64(), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(channelId))
 
@@ -147,7 +119,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			amountOfPayments := 1 + rand.Intn(4)
 			for i := 0; i < amountOfPayments; i++ {
 				// pay between 1 and 2 kwei
-				paymentAmount := big.NewInt(KWEI_IN_WEI + (rand.Int63n(KWEI_IN_WEI)))
+				paymentAmount := big.NewInt(utils.KWEI_IN_WEI + (rand.Int63n(utils.KWEI_IN_WEI)))
 				nClient.Pay(channelId, paymentAmount)
 
 				runEnv.RecordMessage("Sent payment of %d wei to %s using channel %s", paymentAmount.Int64(), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(channelId))
