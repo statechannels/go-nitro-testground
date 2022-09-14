@@ -105,32 +105,7 @@
           },
           "unit": "decbytes"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "0x6C157D15e29b0E2F012431B317cA61a639841774"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 9,
@@ -841,8 +816,8 @@
       {
         "current": {
           "selected": false,
-          "text": "cch1vfonr2gv6bipr5e0",
-          "value": "cch1vfonr2gv6bipr5e0"
+          "text": "cch2unonr2guvn8sce20",
+          "value": "cch2unonr2guvn8sce20"
         },
         "datasource": {
           "type": "influxdb",
@@ -887,8 +862,8 @@
       {
         "current": {
           "selected": false,
-          "text": "5m0s",
-          "value": "5m0s"
+          "text": "3m0s",
+          "value": "3m0s"
         },
         "datasource": {
           "type": "influxdb",
@@ -933,8 +908,8 @@
       {
         "current": {
           "selected": false,
-          "text": "2",
-          "value": "2"
+          "text": "7",
+          "value": "7"
         },
         "datasource": {
           "type": "influxdb",
@@ -956,20 +931,20 @@
       {
         "current": {
           "selected": false,
-          "text": "2",
-          "value": "2"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "influxdb",
           "uid": "9j-fr9MVk"
         },
-        "definition": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "definition": "SELECT \"jitter\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "hide": 2,
         "includeAll": false,
         "multi": false,
         "name": "jitter",
         "options": [],
-        "query": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "query": "SELECT \"jitter\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1002,8 +977,8 @@
       {
         "current": {
           "selected": false,
-          "text": "6",
-          "value": "6"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "influxdb",
@@ -1048,13 +1023,13 @@
     ]
   },
   "time": {
-    "from": "2022-09-14T18:38:01.852Z",
-    "to": "2022-09-14T18:45:20.562Z"
+    "from": "2022-09-14T19:45:14.491Z",
+    "to": "2022-09-14T19:48:51.695Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Message Stats",
   "uid": "miulKz7Vk",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
