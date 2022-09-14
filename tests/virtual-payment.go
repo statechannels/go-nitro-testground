@@ -166,11 +166,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, config.PaymentTestDuration, int64(config.ConcurrentPaymentJobs))
-		client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
-
-	} else {
-		client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 	}
+	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 
 	if me.Role != peer.Hub {
 		// TODO: Closing a ledger channel too soon after closing a virtual channel seems to fail.
