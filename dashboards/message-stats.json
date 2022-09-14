@@ -33,254 +33,20 @@
         "type": "influxdb",
         "uid": "9j-fr9MVk"
       },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "decbytes"
-        },
-        "overrides": []
-      },
       "gridPos": {
         "h": 9,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 2,
+      "id": 9,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "content": "<table style=\"width:100%\"> \n<thead>\n  <tr>\n    <th></th>\n    <th></th>\n  </tr>\n</thead>\n<tbody>\n  <tr>\n    <td>Run Id</td>\n    <td>${runId}</td>\n  </tr>\n  <tr>\n    <td>Client Concurrency</td>\n    <td>${jobCount}</td>\n  </tr>\n  <tr>\n    <td>Payment test duration</td>\n    <td>${testDuration}</td>\n  </tr>\n  <tr>\n    <td>Number of payees</td>\n    <td>${payees}</td>\n  </tr>\n    <tr>\n    <td>Number of payers</td>\n    <td>${payers}</td>\n  </tr>\n     <tr>\n    <td>Number of payee-payers</td>\n    <td>${payeepayers}</td>\n  </tr>\n    <tr>\n    <td>Number of hubs</td>\n    <td>${hubs}</td>\n  </tr>\n      <tr>\n    <td>Latency (ms)</td>\n    <td>${latency}</td>\n  </tr>\n      <tr>\n    <td>Jitter (ms)</td>\n    <td>${jitter}</td>\n  </tr>\n</tbody>\n</table>",
+        "mode": "html"
       },
-      "targets": [
-        {
-          "alias": "$tag_wallet",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "9j-fr9MVk"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "wallet"
-              ],
-              "type": "tag"
-            }
-          ],
-          "hide": false,
-          "measurement": "diagnostics.go-nitro-virtual-payment.msg_size.gauge",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "run",
-              "operator": "=~",
-              "value": "/^$runId$/"
-            }
-          ]
-        }
-      ],
-      "title": "Message Size",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "9j-fr9MVk"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "decbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "alias": "$tag_wallet",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "9j-fr9MVk"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "wallet"
-              ],
-              "type": "tag"
-            }
-          ],
-          "hide": false,
-          "measurement": "diagnostics.go-nitro-virtual-payment.msg_payload_count.gauge",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT value FROM \"diagnostics.go-nitro-virtual-payment.msg_payload_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter AND value != 0 GROUP BY \"wallet\"",
-          "rawQuery": true,
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "run",
-              "operator": "=~",
-              "value": "/^$runId$/"
-            }
-          ]
-        }
-      ],
-      "title": "Payload Size",
-      "type": "timeseries"
+      "pluginVersion": "9.1.4",
+      "title": "Run details",
+      "type": "text"
     },
     {
       "datasource": {
@@ -339,7 +105,32 @@
           },
           "unit": "decbytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "0x6C157D15e29b0E2F012431B317cA61a639841774"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 9,
@@ -600,7 +391,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "decbytes"
         },
         "overrides": []
       },
@@ -609,6 +401,259 @@
         "w": 12,
         "x": 0,
         "y": 18
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$tag_wallet",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "9j-fr9MVk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "wallet"
+              ],
+              "type": "tag"
+            }
+          ],
+          "hide": false,
+          "measurement": "diagnostics.go-nitro-virtual-payment.msg_size.gauge",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            }
+          ]
+        }
+      ],
+      "title": "Message Size",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "9j-fr9MVk"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$tag_wallet",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "9j-fr9MVk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "wallet"
+              ],
+              "type": "tag"
+            }
+          ],
+          "hide": false,
+          "measurement": "diagnostics.go-nitro-virtual-payment.msg_payload_count.gauge",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT value FROM \"diagnostics.go-nitro-virtual-payment.msg_payload_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter AND value != 0 GROUP BY \"wallet\"",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "run",
+              "operator": "=~",
+              "value": "/^$runId$/"
+            }
+          ]
+        }
+      ],
+      "title": "Payload Size",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "9j-fr9MVk"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
       },
       "id": 3,
       "options": {
@@ -728,7 +773,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 27
       },
       "id": 4,
       "options": {
@@ -796,8 +841,8 @@
       {
         "current": {
           "selected": false,
-          "text": "cch1lkonr2gv6bipr5d0",
-          "value": "cch1lkonr2gv6bipr5d0"
+          "text": "cch1vfonr2gv6bipr5e0",
+          "value": "cch1vfonr2gv6bipr5e0"
         },
         "datasource": {
           "type": "influxdb",
@@ -815,17 +860,201 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "5",
+          "value": "5"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT concurrentJobs, mean FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run = '$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "jobCount",
+        "options": [],
+        "query": "SELECT concurrentJobs, mean FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run = '$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "5m0s",
+          "value": "5m0s"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT \"duration\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "testDuration",
+        "options": [],
+        "query": "SELECT \"duration\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "4",
+          "value": "4"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT \"hubs\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "hubs",
+        "options": [],
+        "query": "SELECT \"hubs\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "2",
+          "value": "2"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "payees",
+        "options": [],
+        "query": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "2",
+          "value": "2"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "jitter",
+        "options": [],
+        "query": "SELECT \"payees\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "0",
+          "value": "0"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT \"latency\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "latency",
+        "options": [],
+        "query": "SELECT \"latency\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "6",
+          "value": "6"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT \"payers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "payers",
+        "options": [],
+        "query": "SELECT \"payers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "0",
+          "value": "0"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "9j-fr9MVk"
+        },
+        "definition": "SELECT \"payeePayers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "payeepayers",
+        "options": [],
+        "query": "SELECT \"payeePayers\",count FROM \"diagnostics.go-nitro-virtual-payment.time_to_first_payment.timer\" where run='$runId'",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "2022-09-14T18:17:21.322Z",
-    "to": "2022-09-14T18:21:59.869Z"
+    "from": "2022-09-14T18:38:01.852Z",
+    "to": "2022-09-14T18:45:20.562Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Message Stats",
   "uid": "miulKz7Vk",
-  "version": 2,
+  "version": 4,
   "weekStart": ""
 }
