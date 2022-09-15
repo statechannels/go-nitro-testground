@@ -87,6 +87,18 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 				}
 				h.checkError(err)
 				m, err := protocols.DeserializeMessage(raw)
+				
+				h.metrics.Gauge(fmt.Sprintf("msg_proposal_count,wallet=%s", me.Address)).Update(float64(len(m.LedgerProposals)))
+				h.metrics.Gauge(fmt.Sprintf("msg_payment_count,wallet=%s", me.Address)).Update(float64(len(m.Payments)))
+				h.metrics.Gauge(fmt.Sprintf("msg_payload_count,wallet=%s", me.Address)).Update(float64(len(m.ObjectivePayloads)))
+
+				totalPayloadsSize := 0
+				for _, p := range m.ObjectivePayloads {
+					totalPayloadsSize += len(p.PayloadData)
+				}
+				h.metrics.Gauge(fmt.Sprintf("msg_payload_size,wallet=%s", me.Address)).Update(float64(totalPayloadsSize))
+				h.metrics.Gauge(fmt.Sprintf("msg_size,wallet=%s", me.Address)).Update(float64(len(raw)))
+
 				h.checkError(err)
 				h.out <- m
 			}
