@@ -8,7 +8,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	NitroAdjudicator "github.com/statechannels/go-nitro/client/engine/chainservice/adjudicator"
@@ -27,14 +26,7 @@ func NewChainService(seq int64, logDestination io.Writer) chainservice.ChainServ
 		log.Fatal(err)
 	}
 
-	if seq > int64(len(pks)) {
-		log.Fatal("the number of testground instances is greater than the number of hardhat private keys")
-	}
-	pk, err := crypto.HexToECDSA(pks[seq])
-	if err != nil {
-		log.Fatal(err)
-	}
-	txSubmitter, err := bind.NewKeyedTransactorWithChainID(pk, big.NewInt(1337))
+	txSubmitter, err := bind.NewKeyedTransactorWithChainID(getFundedPrivateKey(uint(seq)), big.NewInt(1337))
 	if err != nil {
 		log.Fatal(err)
 	}
