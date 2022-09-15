@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/multiformats/go-multiaddr v0.6.0
-	github.com/statechannels/go-nitro v0.0.0-20220909202206-e70703cba68d
+	github.com/statechannels/go-nitro v0.0.0-20220915164938-332f2eabdca2
 )
 
 require (
