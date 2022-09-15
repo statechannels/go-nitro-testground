@@ -7,8 +7,9 @@ import (
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
-// getFundedPrivateKeys returns a collection of private keys that are funded on the hardhat network
-func getFundedPrivateKeys() []*ecdsa.PrivateKey {
+// getFundedPrivateKey returns a funded private key for a given sequence number
+// It will always return the same private key for a given sequence number
+func getFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
 	// See https://hardhat.org/hardhat-network/docs/reference#accounts for defaults
 	// This is the default mnemonic used by hardhat
 	const HARDHAT_MNEMONIC = "test test test test test test test test test test test junk"
@@ -18,28 +19,27 @@ func getFundedPrivateKeys() []*ecdsa.PrivateKey {
 	// This is the default hd wallet path used by hardhat
 	const HD_PATH = "m/44'/60'/0'/0"
 
+	ourIndex := seq - 1 // seq starts at 1
+
+	if NUM_FUNDED < seq {
+		panic(fmt.Errorf("only the first %d accounts are funded", NUM_FUNDED))
+	}
+
 	wallet, err := hdwallet.NewFromMnemonic(HARDHAT_MNEMONIC)
+
+	ourPath := fmt.Sprintf("%s/%d", HD_PATH, ourIndex)
 	if err != nil {
 		panic(err)
 	}
 
-	pks := make([]*ecdsa.PrivateKey, NUM_FUNDED)
-	for i := 0; i < NUM_FUNDED; i++ {
-		// Construct the full hd path for the account at index i
-		p := fmt.Sprintf("%s/%d", HD_PATH, i)
-
-		a, err := wallet.Derive(hdwallet.MustParseDerivationPath(p), true)
-		if err != nil {
-			panic(err)
-		}
-
-		pk, err := wallet.PrivateKey(a)
-		if err != nil {
-			panic(err)
-		}
-
-		pks[i] = pk
-
+	a, err := wallet.Derive(hdwallet.MustParseDerivationPath(ourPath), false)
+	if err != nil {
+		panic(err)
 	}
-	return pks
+	pk, err := wallet.PrivateKey(a)
+	if err != nil {
+		panic(err)
+	}
+	return pk
+
 }

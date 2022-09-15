@@ -26,12 +26,7 @@ func NewChainService(seq int64, logDestination io.Writer) chainservice.ChainServ
 		log.Fatal(err)
 	}
 
-	pks := getFundedPrivateKeys()
-	if seq > int64(len(pks)) {
-		log.Fatal("the number of testground instances is greater than the number of hardhat private keys")
-	}
-
-	txSubmitter, err := bind.NewKeyedTransactorWithChainID(pks[seq], big.NewInt(1337))
+	txSubmitter, err := bind.NewKeyedTransactorWithChainID(getFundedPrivateKey(uint(seq)), big.NewInt(1337))
 	if err != nil {
 		log.Fatal(err)
 	}
