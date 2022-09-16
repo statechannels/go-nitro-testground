@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 4,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -128,7 +128,7 @@
       },
       "targets": [
         {
-          "alias": "$tag_wallet",
+          "alias": "$tag_sender",
           "datasource": {
             "type": "influxdb",
             "uid": "9j-fr9MVk"
@@ -142,7 +142,7 @@
             },
             {
               "params": [
-                "wallet"
+                "sender"
               ],
               "type": "tag"
             }
@@ -176,7 +176,7 @@
           ]
         }
       ],
-      "title": "Average Message Size",
+      "title": "Average Message Size By Sender",
       "type": "timeseries"
     },
     {
@@ -184,7 +184,7 @@
         "type": "influxdb",
         "uid": "9j-fr9MVk"
       },
-      "description": "Grouped by 10 second intervals",
+      "description": "Grouped by 10 second intervals to smooth the chart",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -225,8 +225,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -244,7 +243,7 @@
         "x": 12,
         "y": 9
       },
-      "id": 7,
+      "id": 10,
       "options": {
         "legend": {
           "calcs": [],
@@ -259,7 +258,7 @@
       },
       "targets": [
         {
-          "alias": "$tag_wallet",
+          "alias": "$tag_receiver",
           "datasource": {
             "type": "influxdb",
             "uid": "9j-fr9MVk"
@@ -267,22 +266,22 @@
           "groupBy": [
             {
               "params": [
-                "10s"
+                "1s"
               ],
               "type": "time"
             },
             {
               "params": [
-                "wallet"
+                "receiver"
               ],
               "type": "tag"
             }
           ],
           "hide": false,
-          "measurement": "diagnostics.go-nitro-virtual-payment.msg_payload_size.gauge",
+          "measurement": "diagnostics.go-nitro-virtual-payment.msg_size.gauge",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT meanvalue FROM \"diagnostics.go-nitro-virtual-payment.msg_payload_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter AND value != 0 GROUP BY \"wallet\"",
+          "query": "SELECT mean(\"value\") FROM \"diagnostics.go-nitro-virtual-payment.msg_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY time(10s), \"receiver\"",
           "rawQuery": false,
           "refId": "B",
           "resultFormat": "time_series",
@@ -309,7 +308,7 @@
           ]
         }
       ],
-      "title": "Average Payload Size",
+      "title": "Average Message Size By Receiver",
       "type": "timeseries"
     },
     {
@@ -392,7 +391,7 @@
       },
       "targets": [
         {
-          "alias": "$tag_wallet",
+          "alias": "$tag_sender",
           "datasource": {
             "type": "influxdb",
             "uid": "9j-fr9MVk"
@@ -400,7 +399,13 @@
           "groupBy": [
             {
               "params": [
-                "wallet"
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "sender"
               ],
               "type": "tag"
             }
@@ -409,6 +414,8 @@
           "measurement": "diagnostics.go-nitro-virtual-payment.msg_size.gauge",
           "orderByTime": "ASC",
           "policy": "default",
+          "query": "SELECT \"value\" FROM \"diagnostics.go-nitro-virtual-payment.msg_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"sebder\"",
+          "rawQuery": false,
           "refId": "B",
           "resultFormat": "time_series",
           "select": [
@@ -418,6 +425,10 @@
                   "value"
                 ],
                 "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
               }
             ]
           ],
@@ -430,7 +441,7 @@
           ]
         }
       ],
-      "title": "Message Size",
+      "title": "Message Size by Sender",
       "type": "timeseries"
     },
     {
@@ -498,7 +509,7 @@
         "x": 12,
         "y": 18
       },
-      "id": 5,
+      "id": 11,
       "options": {
         "legend": {
           "calcs": [],
@@ -513,7 +524,7 @@
       },
       "targets": [
         {
-          "alias": "$tag_wallet",
+          "alias": "$tag_receiver",
           "datasource": {
             "type": "influxdb",
             "uid": "9j-fr9MVk"
@@ -521,23 +532,17 @@
           "groupBy": [
             {
               "params": [
-                "$interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "wallet"
+                "receiver"
               ],
               "type": "tag"
             }
           ],
           "hide": false,
-          "measurement": "diagnostics.go-nitro-virtual-payment.msg_payload_count.gauge",
+          "measurement": "diagnostics.go-nitro-virtual-payment.msg_size.gauge",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT value FROM \"diagnostics.go-nitro-virtual-payment.msg_payload_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter AND value != 0 GROUP BY \"wallet\"",
-          "rawQuery": true,
+          "query": "SELECT \"value\" FROM \"diagnostics.go-nitro-virtual-payment.msg_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"receiver\"",
+          "rawQuery": false,
           "refId": "B",
           "resultFormat": "time_series",
           "select": [
@@ -547,10 +552,6 @@
                   "value"
                 ],
                 "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
               }
             ]
           ],
@@ -563,7 +564,7 @@
           ]
         }
       ],
-      "title": "Payload Size",
+      "title": "Message Size by Receiver",
       "type": "timeseries"
     },
     {
@@ -620,7 +621,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "decbytes"
         },
         "overrides": []
       },
@@ -630,7 +632,7 @@
         "x": 0,
         "y": 27
       },
-      "id": 3,
+      "id": 4,
       "options": {
         "legend": {
           "calcs": [],
@@ -645,7 +647,7 @@
       },
       "targets": [
         {
-          "alias": "$tag_wallet",
+          "alias": "$tag_receiver",
           "datasource": {
             "type": "influxdb",
             "uid": "9j-fr9MVk"
@@ -653,13 +655,19 @@
           "groupBy": [
             {
               "params": [
-                "wallet"
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "receiver"
               ],
               "type": "tag"
             }
           ],
           "hide": false,
-          "measurement": "diagnostics.go-nitro-virtual-payment.msg_payment_count.gauge",
+          "measurement": "diagnostics.go-nitro-virtual-payment.msg_proposal_count.gauge",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -671,6 +679,10 @@
                   "value"
                 ],
                 "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
               }
             ]
           ],
@@ -683,7 +695,7 @@
           ]
         }
       ],
-      "title": "Payment Count",
+      "title": "Average Proposal Count by Receiver",
       "type": "timeseries"
     },
     {
@@ -691,7 +703,7 @@
         "type": "influxdb",
         "uid": "9j-fr9MVk"
       },
-      "description": "The amount of proposals in a message",
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -740,7 +752,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "decbytes"
         },
         "overrides": []
       },
@@ -750,7 +763,7 @@
         "x": 12,
         "y": 27
       },
-      "id": 4,
+      "id": 12,
       "options": {
         "legend": {
           "calcs": [],
@@ -765,7 +778,7 @@
       },
       "targets": [
         {
-          "alias": "$tag_wallet",
+          "alias": "$tag_sender",
           "datasource": {
             "type": "influxdb",
             "uid": "9j-fr9MVk"
@@ -773,7 +786,13 @@
           "groupBy": [
             {
               "params": [
-                "wallet"
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "sender"
               ],
               "type": "tag"
             }
@@ -791,6 +810,10 @@
                   "value"
                 ],
                 "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
               }
             ]
           ],
@@ -803,7 +826,7 @@
           ]
         }
       ],
-      "title": "Proposal count",
+      "title": "Average Proposal Count by Sender",
       "type": "timeseries"
     }
   ],
@@ -816,8 +839,8 @@
       {
         "current": {
           "selected": false,
-          "text": "cch2unonr2guvn8sce20",
-          "value": "cch2unonr2guvn8sce20"
+          "text": "cci90vgnr2ghl88sh190",
+          "value": "cci90vgnr2ghl88sh190"
         },
         "datasource": {
           "type": "influxdb",
@@ -839,8 +862,8 @@
       {
         "current": {
           "selected": false,
-          "text": "5",
-          "value": "5"
+          "text": "10",
+          "value": "10"
         },
         "datasource": {
           "type": "influxdb",
@@ -862,8 +885,8 @@
       {
         "current": {
           "selected": false,
-          "text": "3m0s",
-          "value": "3m0s"
+          "text": "30s",
+          "value": "30s"
         },
         "datasource": {
           "type": "influxdb",
@@ -885,8 +908,8 @@
       {
         "current": {
           "selected": false,
-          "text": "4",
-          "value": "4"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "influxdb",
@@ -908,8 +931,8 @@
       {
         "current": {
           "selected": false,
-          "text": "7",
-          "value": "7"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "influxdb",
@@ -977,8 +1000,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1",
-          "value": "1"
+          "text": "10",
+          "value": "10"
         },
         "datasource": {
           "type": "influxdb",
@@ -1023,13 +1046,13 @@
     ]
   },
   "time": {
-    "from": "2022-09-14T19:45:14.491Z",
-    "to": "2022-09-14T19:48:51.695Z"
+    "from": "now-5m",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Message Stats",
   "uid": "miulKz7Vk",
-  "version": 5,
+  "version": 2,
   "weekStart": ""
 }
