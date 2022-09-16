@@ -225,7 +225,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -622,7 +623,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -753,7 +754,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -839,8 +840,8 @@
       {
         "current": {
           "selected": false,
-          "text": "cci90vgnr2ghl88sh190",
-          "value": "cci90vgnr2ghl88sh190"
+          "text": "cci97k8nr2ghl88sh1b0",
+          "value": "cci97k8nr2ghl88sh1b0"
         },
         "datasource": {
           "type": "influxdb",
@@ -885,8 +886,8 @@
       {
         "current": {
           "selected": false,
-          "text": "30s",
-          "value": "30s"
+          "text": "2m0s",
+          "value": "2m0s"
         },
         "datasource": {
           "type": "influxdb",
@@ -1053,6 +1054,6 @@
   "timezone": "",
   "title": "Message Stats",
   "uid": "miulKz7Vk",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
