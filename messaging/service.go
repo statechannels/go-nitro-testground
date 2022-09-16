@@ -194,7 +194,7 @@ func (h *P2PMessageService) recordOutgoingMessageMetrics(msg protocols.Message, 
 	for _, p := range msg.ObjectivePayloads {
 		totalPayloadsSize += len(p.PayloadData)
 	}
-	h.metrics.Gauge(fmt.Sprintf("msg__payload_size,sender=%s,receiver=%s", h.me.Address, msg.To)).Update(float64(totalPayloadsSize))
+	h.metrics.Gauge(fmt.Sprintf("msg_payload_size,sender=%s,receiver=%s", h.me.Address, msg.To)).Update(float64(totalPayloadsSize))
 
 	h.metrics.Gauge(fmt.Sprintf("msg_size,wallet,sender=%s,receiver=%s", h.me.Address, msg.To)).Update(float64(len(raw)))
 }
