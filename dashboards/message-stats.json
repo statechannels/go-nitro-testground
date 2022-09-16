@@ -53,270 +53,6 @@
         "type": "influxdb",
         "uid": "9j-fr9MVk"
       },
-      "description": "Grouped by 10 second intervals to smooth the chart",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "decbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 9
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "alias": "$tag_sender",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "9j-fr9MVk"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "1s"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "sender"
-              ],
-              "type": "tag"
-            }
-          ],
-          "hide": false,
-          "measurement": "diagnostics.go-nitro-virtual-payment.msg_size.gauge",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "run",
-              "operator": "=~",
-              "value": "/^$runId$/"
-            }
-          ]
-        }
-      ],
-      "title": "Average Message Size By Sender",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "9j-fr9MVk"
-      },
-      "description": "Grouped by 10 second intervals to smooth the chart",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "decbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 9
-      },
-      "id": 10,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "alias": "$tag_receiver",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "9j-fr9MVk"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "1s"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "receiver"
-              ],
-              "type": "tag"
-            }
-          ],
-          "hide": false,
-          "measurement": "diagnostics.go-nitro-virtual-payment.msg_size.gauge",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT mean(\"value\") FROM \"diagnostics.go-nitro-virtual-payment.msg_size.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY time(10s), \"receiver\"",
-          "rawQuery": false,
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "run",
-              "operator": "=~",
-              "value": "/^$runId$/"
-            }
-          ]
-        }
-      ],
-      "title": "Average Message Size By Receiver",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "9j-fr9MVk"
-      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -375,7 +111,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 9
       },
       "id": 2,
       "options": {
@@ -508,7 +244,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 9
       },
       "id": 11,
       "options": {
@@ -631,7 +367,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 18
       },
       "id": 4,
       "options": {
@@ -656,12 +392,6 @@
           "groupBy": [
             {
               "params": [
-                "1s"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
                 "receiver"
               ],
               "type": "tag"
@@ -680,10 +410,6 @@
                   "value"
                 ],
                 "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
               }
             ]
           ],
@@ -696,7 +422,7 @@
           ]
         }
       ],
-      "title": "Average Proposal Count by Receiver",
+      "title": "Proposal Count by Receiver",
       "type": "timeseries"
     },
     {
@@ -762,7 +488,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 18
       },
       "id": 12,
       "options": {
@@ -787,12 +513,6 @@
           "groupBy": [
             {
               "params": [
-                "1s"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
                 "sender"
               ],
               "type": "tag"
@@ -811,10 +531,6 @@
                   "value"
                 ],
                 "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
               }
             ]
           ],
@@ -827,7 +543,119 @@
           ]
         }
       ],
-      "title": "Average Proposal Count by Sender",
+      "title": "Proposal Count by Sender",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "9j-fr9MVk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 23,
+        "x": 0,
+        "y": 27
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Receiver $tag_wallet",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "9j-fr9MVk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "wallet"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "diagnostics.go-nitro-virtual-payment.messages_queue.gauge",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Incoming Message Queue",
       "type": "timeseries"
     }
   ],
@@ -840,8 +668,8 @@
       {
         "current": {
           "selected": false,
-          "text": "cci97k8nr2ghl88sh1b0",
-          "value": "cci97k8nr2ghl88sh1b0"
+          "text": "ccic020nr2ghccis987g",
+          "value": "ccic020nr2ghccis987g"
         },
         "datasource": {
           "type": "influxdb",
@@ -863,8 +691,8 @@
       {
         "current": {
           "selected": false,
-          "text": "10",
-          "value": "10"
+          "text": "100",
+          "value": "100"
         },
         "datasource": {
           "type": "influxdb",
@@ -886,8 +714,8 @@
       {
         "current": {
           "selected": false,
-          "text": "2m0s",
-          "value": "2m0s"
+          "text": "10s",
+          "value": "10s"
         },
         "datasource": {
           "type": "influxdb",
@@ -1001,8 +829,8 @@
       {
         "current": {
           "selected": false,
-          "text": "10",
-          "value": "10"
+          "text": "4",
+          "value": "4"
         },
         "datasource": {
           "type": "influxdb",
@@ -1047,13 +875,13 @@
     ]
   },
   "time": {
-    "from": "now-5m",
-    "to": "now"
+    "from": "2022-09-16T18:27:13.394Z",
+    "to": "2022-09-16T18:27:49.028Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Message Stats",
   "uid": "miulKz7Vk",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
