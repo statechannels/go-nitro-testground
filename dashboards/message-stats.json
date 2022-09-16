@@ -65,9 +65,9 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -136,12 +136,6 @@
           "groupBy": [
             {
               "params": [
-                "1s"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
                 "sender"
               ],
               "type": "tag"
@@ -162,10 +156,6 @@
                   "value"
                 ],
                 "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
               }
             ]
           ],
@@ -198,7 +188,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "line",
+            "drawStyle": "bars",
             "fillOpacity": 0,
             "gradientMode": "none",
             "hideFrom": {
@@ -206,7 +196,7 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
+            "lineInterpolation": "stepBefore",
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
@@ -321,9 +311,9 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -442,9 +432,9 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "line",
+            "drawStyle": "bars",
             "fillOpacity": 0,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -668,8 +658,8 @@
       {
         "current": {
           "selected": false,
-          "text": "ccic020nr2ghccis987g",
-          "value": "ccic020nr2ghccis987g"
+          "text": "ccicpa0nr2ghccis98a0",
+          "value": "ccicpa0nr2ghccis98a0"
         },
         "datasource": {
           "type": "influxdb",
@@ -691,8 +681,8 @@
       {
         "current": {
           "selected": false,
-          "text": "100",
-          "value": "100"
+          "text": "50",
+          "value": "50"
         },
         "datasource": {
           "type": "influxdb",
@@ -829,8 +819,8 @@
       {
         "current": {
           "selected": false,
-          "text": "4",
-          "value": "4"
+          "text": "10",
+          "value": "10"
         },
         "datasource": {
           "type": "influxdb",
@@ -875,8 +865,8 @@
     ]
   },
   "time": {
-    "from": "2022-09-16T18:27:13.394Z",
-    "to": "2022-09-16T18:27:49.028Z"
+    "from": "2022-09-16T19:21:22.370Z",
+    "to": "2022-09-16T19:24:02.997Z"
   },
   "timepicker": {},
   "timezone": "",
