@@ -136,7 +136,7 @@
           "groupBy": [
             {
               "params": [
-                "10s"
+                "1s"
               ],
               "type": "time"
             },
@@ -1054,6 +1054,6 @@
   "timezone": "",
   "title": "Message Stats",
   "uid": "miulKz7Vk",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
