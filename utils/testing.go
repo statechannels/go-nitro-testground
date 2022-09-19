@@ -155,7 +155,7 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 			CounterParty: p.Address,
 			Outcome:      outcome,
 
-			ChallengeDuration: big.NewInt(0),
+			ChallengeDuration: 0,
 			Nonce:             rand.Uint64(),
 		}
 		r := client.CreateLedgerChannel(request)
@@ -188,7 +188,7 @@ func GenerateVirtualFundObjectiveRequest(me, payee, hub types.Address) virtualfu
 		Outcome:           outcome,
 		AppDefinition:     types.Address{},
 		AppData:           types.Bytes{},
-		ChallengeDuration: big.NewInt(0),
+		ChallengeDuration: 0,
 		Nonce:             rand.Uint64(),
 	}
 }
