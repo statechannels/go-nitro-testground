@@ -141,7 +141,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 
-	if me.Role != peer.Hub {
+	skipCloseLedger := runEnv.BooleanParam("skipCloseLedger")
+
+	if me.Role != peer.Hub && !skipCloseLedger {
 		// TODO: Closing a ledger channel too soon after closing a virtual channel seems to fail.
 		time.Sleep(time.Duration(250 * time.Millisecond))
 		// Close all the ledger channels with the hub
