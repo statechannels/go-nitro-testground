@@ -47,8 +47,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		panic(err)
 	}
 	me := peer.GenerateMe(seq, config, ip.String())
-
 	runEnv.RecordMessage("I am %+v", me)
+
+	utils.RecordRunInfo(me, config, runEnv.D())
 
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
@@ -94,11 +95,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			randomHub := utils.SelectRandom(hubs)
 			randomPayee := utils.SelectRandom(payees)
 
-			runDetails := fmt.Sprintf("me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
-				me.Address, me.Role, config.NumHubs, config.NumPayers, config.NumPayees, config.NumPayeePayers, config.PaymentTestDuration, config.ConcurrentPaymentJobs, config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds())
-
 			var channelId types.Destination
-			runEnv.D().Timer("time_to_first_payment," + runDetails).Time(func() {
+			runEnv.D().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Time(func() {
 
 				request := utils.GenerateVirtualFundObjectiveRequest(me.Address, randomPayee.Address, randomHub.Address)
 				r := nClient.CreateVirtualChannel(request)

@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	"runtime/debug"
 
 	s "sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitro "github.com/statechannels/go-nitro/client"
@@ -191,4 +193,25 @@ func GenerateVirtualFundObjectiveRequest(me, payee, hub types.Address) virtualfu
 		ChallengeDuration: 0,
 		Nonce:             rand.Uint64(),
 	}
+}
+
+// RecordRunInfo records a single point using the metrics API tagged with the various parameters and versions for the run.
+func RecordRunInfo(me peer.MyInfo, config config.RunConfig, metrics *runtime.MetricsApi) {
+	info, _ := debug.ReadBuildInfo()
+
+	var version string
+	for _, dep := range info.Deps {
+		if dep.Path == "github.com/statechannels/go-nitro" {
+			version = dep.Version
+		}
+	}
+
+	runDetails := fmt.Sprintf("nitroVersion=%s,me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
+		version, me.Address, me.Role, config.NumHubs, config.NumPayers,
+		config.NumPayees, config.NumPayeePayers,
+		config.PaymentTestDuration, config.ConcurrentPaymentJobs,
+		config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds())
+
+	metrics.RecordPoint("run_info,"+runDetails, 1)
+
 }
