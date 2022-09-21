@@ -221,5 +221,5 @@ func RecordRunInfo(me peer.MyInfo, config config.RunConfig, metrics *runtime.Met
 		config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds())
 
 	metrics.RecordPoint("run_info,"+runDetails, 1)
-
+	fmt.Println(runDetails)
 }
