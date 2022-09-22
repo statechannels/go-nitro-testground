@@ -14,6 +14,7 @@ import (
 	m "github.com/statechannels/go-nitro-testground/messaging"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
+	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/client/engine"
 	"github.com/statechannels/go-nitro/client/engine/store"
@@ -98,8 +99,20 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			var channelId types.Destination
 			runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Time(func() {
 
-				request := utils.GenerateVirtualFundObjectiveRequest(me.Address, randomPayee.Address, randomHub.Address)
-				r := nClient.CreateVirtualChannel(request)
+				outcome := outcome.Exit{outcome.SingleAssetExit{
+					Allocations: outcome.Allocations{
+						outcome.Allocation{
+							Destination: types.AddressToDestination(me.Address),
+							Amount:      big.NewInt(int64(10 * utils.GWEI_IN_WEI)),
+						},
+						outcome.Allocation{
+							Destination: types.AddressToDestination(randomPayee.Address),
+							Amount:      big.NewInt(0),
+						},
+					},
+				}}
+
+				r := nClient.CreateVirtualPaymentChannel(randomHub.Address, randomPayee.Address, 0, outcome)
 
 				channelId = r.ChannelId
 				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})

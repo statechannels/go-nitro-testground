@@ -17,8 +17,6 @@ import (
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/protocols"
-	"github.com/statechannels/go-nitro/protocols/directfund"
-	"github.com/statechannels/go-nitro/protocols/virtualfund"
 	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/network"
 	"github.com/testground/sdk-go/runtime"
@@ -153,46 +151,13 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 			},
 		}}
 
-		request := directfund.ObjectiveRequestForConsensusApp{
-			CounterParty: p.Address,
-			Outcome:      outcome,
-
-			ChallengeDuration: 0,
-			Nonce:             rand.Uint64(),
-		}
-		r := client.CreateLedgerChannel(request)
+		r := client.CreateLedgerChannel(p.Address, 0, outcome)
 		cIds = append(cIds, r.ChannelId)
 		ids = append(ids, r.Id)
 	}
 
 	cm.WaitForObjectivesToComplete(ids)
 	return cIds
-}
-
-// GenerateVirtualFundObjectiveRequest generates a virtual channel request  with 10 gwei in funding
-func GenerateVirtualFundObjectiveRequest(me, payee, hub types.Address) virtualfund.ObjectiveRequest {
-	outcome := outcome.Exit{outcome.SingleAssetExit{
-		Allocations: outcome.Allocations{
-			outcome.Allocation{
-				Destination: types.AddressToDestination(me),
-				Amount:      big.NewInt(int64(10 * GWEI_IN_WEI)),
-			},
-			outcome.Allocation{
-				Destination: types.AddressToDestination(payee),
-				Amount:      big.NewInt(0),
-			},
-		},
-	}}
-
-	return virtualfund.ObjectiveRequest{
-		CounterParty:      payee,
-		Intermediary:      hub,
-		Outcome:           outcome,
-		AppDefinition:     types.Address{},
-		AppData:           types.Bytes{},
-		ChallengeDuration: 0,
-		Nonce:             rand.Uint64(),
-	}
 }
 
 // RecordRunInfo records a single point using the metrics API tagged with the various parameters and versions for the run.
