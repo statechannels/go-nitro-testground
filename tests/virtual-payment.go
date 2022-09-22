@@ -130,7 +130,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 			// TODO: get payment balance and output it to the log
 			runEnv.RecordMessage("Closing %s with payment to %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address))
-			nClient.CloseVirtualChannel(channelId)
+			closeId := nClient.CloseVirtualChannel(channelId)
+			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{closeId})
 
 		}
 
