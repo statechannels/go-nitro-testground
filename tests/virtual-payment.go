@@ -26,7 +26,7 @@ import (
 )
 
 func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
-	runEnv.D().SetFrequency(1 * time.Second)
+
 	ctx := context.Background()
 
 	client := init.SyncClient
@@ -59,12 +59,12 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
 
-	ms := m.NewP2PMessageService(me, peers, runEnv.D())
+	ms := m.NewP2PMessageService(me, peers, runEnv.R())
 
 	// The outputs folder will be copied when results are collected.
 	logDestination, _ := os.OpenFile("./outputs/nitro-client.log", os.O_CREATE|os.O_WRONLY, 0666)
 
-	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
+	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
 
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
@@ -96,7 +96,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			randomPayee := utils.SelectRandom(payees)
 
 			var channelId types.Destination
-			runEnv.D().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Time(func() {
+			runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Time(func() {
 
 				request := utils.GenerateVirtualFundObjectiveRequest(me.Address, randomPayee.Address, randomHub.Address)
 				r := nClient.CreateVirtualChannel(request)

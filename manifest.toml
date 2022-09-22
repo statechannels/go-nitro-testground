@@ -1,4 +1,4 @@
-name = "go-nitro"
+name = "go-nitro-testground"
 [defaults]
 builder = "exec:go"
 runner = "local:exec"
