@@ -49,7 +49,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	me := peer.GenerateMe(seq, config, ip.String())
 	runEnv.RecordMessage("I am %+v", me)
 
-	utils.RecordRunInfo(me, config, runEnv.D())
+	utils.RecordRunInfo(me, config, runEnv.R())
 
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
