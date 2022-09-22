@@ -38,7 +38,7 @@ func NewChainService(seq int64, logDestination io.Writer) chainservice.ChainServ
 	}
 	txSubmitter.GasPrice = gasPrice
 
-	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, txSubmitter, logDestination)
+	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, common.Address{}, txSubmitter, logDestination)
 	if err != nil {
 		log.Fatal(err)
 	}
