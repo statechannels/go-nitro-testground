@@ -62,8 +62,11 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	ms := m.NewP2PMessageService(me, peers, runEnv.R())
 
+	// We skip the 0x prefix by slicing from index 2
+	shortAddress := me.Address.String()[2:8]
+	logPath := fmt.Sprintf("./outputs/nitro-client-%s-role-%d.log", shortAddress, me.Role)
 	// The outputs folder will be copied when results are collected.
-	logDestination, _ := os.OpenFile("./outputs/nitro-client.log", os.O_CREATE|os.O_WRONLY, 0666)
+	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
 
