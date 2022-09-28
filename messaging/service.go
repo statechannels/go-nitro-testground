@@ -82,28 +82,27 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 	h.p2pHost.SetStreamHandler(MESSAGE_ADDRESS, func(stream network.Stream) {
 
-		reader := bufio.NewReader(stream)
-		for {
-			select {
-			case <-h.quit:
-				stream.Close()
+		select {
+		case <-h.quit:
+			stream.Close()
+			return
+		default:
+
+			reader := bufio.NewReader(stream)
+			// Create a buffer stream for non blocking read and write.
+			raw, err := reader.ReadString(DELIMETER)
+
+			// An EOF means the stream has been closed by the other side.
+			if errors.Is(err, io.EOF) {
 				return
-			default:
-
-				// Create a buffer stream for non blocking read and write.
-				raw, err := reader.ReadString(DELIMETER)
-
-				// An EOF means the stream has been closed by the other side.
-				if errors.Is(err, io.EOF) {
-					return
-				}
-				h.checkError(err)
-				m, err := protocols.DeserializeMessage(raw)
-
-				h.checkError(err)
-				h.out <- m
 			}
+			h.checkError(err)
+			m, err := protocols.DeserializeMessage(raw)
+
+			h.checkError(err)
+			h.out <- m
 		}
+
 	})
 
 	return h
