@@ -15,7 +15,6 @@ import (
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro/client/engine/store/safesync"
 	"github.com/statechannels/go-nitro/protocols"
-	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/runtime"
 )
 
@@ -27,8 +26,8 @@ const (
 
 // P2PMessageService is a rudimentary message service that uses TCP to send and receive messages
 type P2PMessageService struct {
-	out   chan protocols.Message // for sending message to engine
-	in    chan protocols.Message // for receiving messages from engine
+	out chan protocols.Message // for sending message to engine
+
 	peers *safesync.Map[peer.PeerInfo]
 
 	quit chan struct{} // quit is used to signal the goroutine to stop
@@ -59,7 +58,6 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 		safePeers.Store(p.Address.String(), p)
 	}
 	h := &P2PMessageService{
-		in:      make(chan protocols.Message, BUFFER_SIZE),
 		out:     make(chan protocols.Message, BUFFER_SIZE),
 		peers:   &safePeers,
 		p2pHost: host,
@@ -67,6 +65,21 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 		me:      me,
 		metrics: metrics,
 	}
+
+	for _, p := range peers {
+		if p.Address == h.me.Address {
+			continue
+		}
+		// Extract the peer ID from the multiaddr.
+		info, err := p2ppeer.AddrInfoFromP2pAddr(p.MultiAddress())
+		h.checkError(err)
+
+		// Add the destination's peer multiaddress in the peerstore.
+		// This will be used during connection and stream creation by libp2p.
+		h.p2pHost.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
+
+	}
+
 	h.p2pHost.SetStreamHandler(MESSAGE_ADDRESS, func(stream network.Stream) {
 
 		reader := bufio.NewReader(stream)
@@ -79,10 +92,8 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 				// Create a buffer stream for non blocking read and write.
 				raw, err := reader.ReadString(DELIMETER)
-				// TODO: If the stream has been closed we just bail for now
-				// TODO: Properly check for and handle stream reset error
-				if errors.Is(err, io.EOF) || fmt.Sprintf("%s", err) == "stream reset" {
-					stream.Close()
+
+				if errors.Is(err, io.EOF) || raw == "" {
 					return
 				}
 				h.checkError(err)
@@ -102,13 +113,7 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 // This should be called once all the message services are running.
 // TODO: The message service should handle this internally
 func (s *P2PMessageService) DialPeers() {
-	go s.connectToPeers()
-}
 
-// connectToPeers establishes a stream with all our peers and uses that stream to send messages
-func (s *P2PMessageService) connectToPeers() {
-	// create a map with streams to all peers
-	peerStreams := make(map[types.Address]network.Stream)
 	s.peers.Range(func(key string, p peer.PeerInfo) bool {
 
 		if p.Address == s.me.Address {
@@ -122,40 +127,35 @@ func (s *P2PMessageService) connectToPeers() {
 		// This will be used during connection and stream creation by libp2p.
 		s.p2pHost.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
 
-		stream, err := s.p2pHost.NewStream(context.Background(), info.ID, MESSAGE_ADDRESS)
+		err = s.p2pHost.Connect(context.Background(), *info)
 		s.checkError(err)
-		peerStreams[p.Address] = stream
+
 		return true
 	})
-	for {
-		select {
-		case <-s.quit:
-
-			for _, writer := range peerStreams {
-				writer.Close()
-			}
-			return
-		case m := <-s.in:
-			raw, err := m.Serialize()
-			s.checkError(err)
-			s.recordOutgoingMessageMetrics(m, []byte(raw))
-			writer := bufio.NewWriter(peerStreams[m.To])
-			_, err = writer.WriteString(raw)
-			s.checkError(err)
-			err = writer.WriteByte(DELIMETER)
-			s.checkError(err)
-			writer.Flush()
-
-		}
-	}
-
 }
 
-// Send dispatches messages
-func (h *P2PMessageService) Send(msg protocols.Message) {
+// Send sends messages to other participants
+func (ms *P2PMessageService) Send(msg protocols.Message) {
 
-	// TODO: Now that the in chan has been deprecated from the API we should remove in from this message serviceß
-	h.in <- msg
+	raw, err := msg.Serialize()
+	ms.checkError(err)
+
+	ms.recordOutgoingMessageMetrics(msg, []byte(raw))
+	peer, ok := ms.peers.Load(msg.To.String())
+	if !ok {
+		panic(fmt.Errorf("could not load peer %s", msg.To.String()))
+	}
+
+	s, err := ms.p2pHost.NewStream(context.Background(), peer.Id, MESSAGE_ADDRESS)
+	ms.checkError(err)
+
+	writer := bufio.NewWriter(s)
+	_, err = writer.WriteString(raw + string(DELIMETER))
+	ms.checkError(err)
+
+	writer.Flush()
+	s.Close()
+
 }
 
 // checkError panics if the SimpleTCPMessageService is running, otherwise it just returns
