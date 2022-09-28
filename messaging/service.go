@@ -94,6 +94,7 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 			// An EOF means the stream has been closed by the other side.
 			if errors.Is(err, io.EOF) {
+				stream.Close()
 				return
 			}
 			h.checkError(err)
@@ -101,6 +102,7 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 			h.checkError(err)
 			h.out <- m
+			stream.Close()
 		}
 
 	})
