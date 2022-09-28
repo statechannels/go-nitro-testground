@@ -93,7 +93,8 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 				// Create a buffer stream for non blocking read and write.
 				raw, err := reader.ReadString(DELIMETER)
 
-				if errors.Is(err, io.EOF) || raw == "" {
+				// An EOF means the stream has been closed by the other side.
+				if errors.Is(err, io.EOF) {
 					return
 				}
 				h.checkError(err)
