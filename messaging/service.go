@@ -116,7 +116,7 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 // Send sends messages to other participants
 func (ms *P2PMessageService) Send(msg protocols.Message) {
-
+	start := time.Now()
 	raw, err := msg.Serialize()
 	ms.checkError(err)
 
@@ -142,6 +142,7 @@ func (ms *P2PMessageService) Send(msg protocols.Message) {
 			time.Sleep(RETRY_SLEEP_DURATION)
 		}
 	}
+	ms.metrics.Timer(fmt.Sprintf("msg_send,sender=%s", ms.me.Address)).Update(time.Since(start))
 
 }
 
