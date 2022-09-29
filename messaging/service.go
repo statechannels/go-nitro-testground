@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	libp2p "github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -19,9 +20,11 @@ import (
 )
 
 const (
-	MESSAGE_ADDRESS = "/messages/1.0.0"
-	DELIMETER       = '\n'
-	BUFFER_SIZE     = 1_000_000
+	MESSAGE_ADDRESS      = "/messages/1.0.0"
+	DELIMETER            = '\n'
+	BUFFER_SIZE          = 1_000_000
+	NUM_CONNECT_ATTEMPTS = 20
+	RETRY_SLEEP_DURATION = 5 * time.Second
 )
 
 // P2PMessageService is a rudimentary message service that uses TCP to send and receive messages
@@ -111,52 +114,34 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 }
 
-// DialPeers dials all peers in the peer list and establishs a connection with them.
-// This should be called once all the message services are running.
-// TODO: The message service should handle this internally
-func (s *P2PMessageService) DialPeers() {
-
-	s.peers.Range(func(key string, p peer.PeerInfo) bool {
-
-		if p.Address == s.me.Address {
-			return false
-		}
-		// Extract the peer ID from the multiaddr.
-		info, err := p2ppeer.AddrInfoFromP2pAddr(p.MultiAddress())
-		s.checkError(err)
-
-		// Add the destination's peer multiaddress in the peerstore.
-		// This will be used during connection and stream creation by libp2p.
-		s.p2pHost.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
-
-		err = s.p2pHost.Connect(context.Background(), *info)
-		s.checkError(err)
-
-		return true
-	})
-}
-
 // Send sends messages to other participants
 func (ms *P2PMessageService) Send(msg protocols.Message) {
 
 	raw, err := msg.Serialize()
 	ms.checkError(err)
 
-	ms.recordOutgoingMessageMetrics(msg, []byte(raw))
 	peer, ok := ms.peers.Load(msg.To.String())
 	if !ok {
 		panic(fmt.Errorf("could not load peer %s", msg.To.String()))
 	}
 
-	s, err := ms.p2pHost.NewStream(context.Background(), peer.Id, MESSAGE_ADDRESS)
-	ms.checkError(err)
+	for i := 0; i < NUM_CONNECT_ATTEMPTS; i++ {
+		s, err := ms.p2pHost.NewStream(context.Background(), peer.Id, MESSAGE_ADDRESS)
+		if err == nil {
+			writer := bufio.NewWriter(s)
+			_, err = writer.WriteString(raw + string(DELIMETER))
+			ms.checkError(err)
+			ms.recordOutgoingMessageMetrics(msg, []byte(raw))
 
-	writer := bufio.NewWriter(s)
-	_, err = writer.WriteString(raw + string(DELIMETER))
-	ms.checkError(err)
+			writer.Flush()
+			s.Close()
 
-	writer.Flush()
-	s.Close()
+			return
+		} else {
+			fmt.Printf("attempt %d: could not open stream to %s, retrying in %s\n", i, peer.Address.String(), RETRY_SLEEP_DURATION.String())
+			time.Sleep(RETRY_SLEEP_DURATION)
+		}
+	}
 
 }
 

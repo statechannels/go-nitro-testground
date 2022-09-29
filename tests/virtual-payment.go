@@ -76,7 +76,6 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// We wait until everyone has chosen an address.
 	client.MustSignalAndWait(ctx, "client created", runEnv.TestInstanceCount)
 
-	ms.DialPeers()
 	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
 	ledgerIds := []types.Destination{}
