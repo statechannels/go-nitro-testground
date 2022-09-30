@@ -58,7 +58,16 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 	safePeers := safesync.Map[peer.PeerInfo]{}
 	for _, p := range peers {
+		if p.Address == me.Address {
+			continue
+		}
 		safePeers.Store(p.Address.String(), p)
+
+		// Extract the peer ID from the multiaddr.
+		info, _ := p2ppeer.AddrInfoFromP2pAddr(p.MultiAddress())
+		// Add the destination's peer multiaddress in the peerstore.
+		// This will be used during connection and stream creation by libp2p.
+		host.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
 	}
 	h := &P2PMessageService{
 		out:     make(chan protocols.Message, BUFFER_SIZE),
@@ -67,20 +76,6 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 		quit:    make(chan struct{}),
 		me:      me,
 		metrics: metrics,
-	}
-
-	for _, p := range peers {
-		if p.Address == h.me.Address {
-			continue
-		}
-		// Extract the peer ID from the multiaddr.
-		info, err := p2ppeer.AddrInfoFromP2pAddr(p.MultiAddress())
-		h.checkError(err)
-
-		// Add the destination's peer multiaddress in the peerstore.
-		// This will be used during connection and stream creation by libp2p.
-		h.p2pHost.Peerstore().AddAddrs(info.ID, info.Addrs, peerstore.PermanentAddrTTL)
-
 	}
 
 	h.p2pHost.SetStreamHandler(MESSAGE_ADDRESS, func(stream network.Stream) {
