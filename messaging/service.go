@@ -21,7 +21,7 @@ import (
 
 const (
 	MESSAGE_ADDRESS      = "/messages/1.0.0"
-	DELIMETER            = '\n'
+	DELIMITER            = '\n'
 	BUFFER_SIZE          = 1_000_000
 	NUM_CONNECT_ATTEMPTS = 20
 	RETRY_SLEEP_DURATION = 5 * time.Second
@@ -93,7 +93,7 @@ func NewP2PMessageService(me peer.MyInfo, peers []peer.PeerInfo, metrics *runtim
 
 			reader := bufio.NewReader(stream)
 			// Create a buffer stream for non blocking read and write.
-			raw, err := reader.ReadString(DELIMETER)
+			raw, err := reader.ReadString(DELIMITER)
 
 			// An EOF means the stream has been closed by the other side.
 			if errors.Is(err, io.EOF) {
@@ -129,7 +129,7 @@ func (ms *P2PMessageService) Send(msg protocols.Message) {
 		s, err := ms.p2pHost.NewStream(context.Background(), peer.Id, MESSAGE_ADDRESS)
 		if err == nil {
 			writer := bufio.NewWriter(s)
-			_, err = writer.WriteString(raw + string(DELIMETER))
+			_, err = writer.WriteString(raw + string(DELIMITER))
 			ms.checkError(err)
 			ms.recordOutgoingMessageMetrics(msg, []byte(raw))
 
