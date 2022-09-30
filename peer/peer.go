@@ -15,7 +15,7 @@ import (
 )
 
 // START_PORT is the start of the port range we'll use to issue unique ports.
-const START_PORT = 7000
+const START_PORT = 49000
 
 type Role = uint
 
