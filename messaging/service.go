@@ -132,10 +132,11 @@ func (ms *P2PMessageService) Send(msg protocols.Message) {
 			s.Close()
 
 			return
-		} else {
-			fmt.Printf("attempt %d: could not open stream to %s, retrying in %s\n", i, peer.Address.String(), RETRY_SLEEP_DURATION.String())
-			time.Sleep(RETRY_SLEEP_DURATION)
 		}
+
+		fmt.Printf("attempt %d: could not open stream to %s, retrying in %s\n", i, peer.Address.String(), RETRY_SLEEP_DURATION.String())
+		time.Sleep(RETRY_SLEEP_DURATION)
+
 	}
 	ms.metrics.Timer(fmt.Sprintf("msg_send,sender=%s", ms.me.Address)).Update(time.Since(start))
 
