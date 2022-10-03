@@ -3,15 +3,10 @@ package peer
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"math/rand"
-	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
-	p2pcrypto "github.com/libp2p/go-libp2p/core/crypto"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/statechannels/go-nitro-testground/config"
-	"github.com/statechannels/go-nitro/types"
+	p2pms "github.com/statechannels/go-nitro/client/engine/messageservice/p2p-message-service"
 )
 
 // START_PORT is the start of the port range we'll use to issue unique ports.
@@ -29,11 +24,8 @@ const (
 // PeerInfo represents a peer testground instance.
 // It contains information about the peers address and role that instance is playing.
 type PeerInfo struct {
-	Port      int64
-	Id        peer.ID
-	Address   types.Address
-	Role      Role
-	IpAddress string
+	p2pms.PeerInfo
+	Role Role
 }
 
 // IsPayer returns true if the peer's role is a Payer or PayeePayer
@@ -61,11 +53,10 @@ func (p PeerInfo) MultiAddress() multiaddr.Multiaddr {
 type MyInfo struct {
 	PeerInfo
 	PrivateKey ecdsa.PrivateKey
-	MessageKey p2pcrypto.PrivKey
 }
 
-// getRole determines the role an instance will play based on the run config.
-func getRole(seq int64, c config.RunConfig) Role {
+// GetRole determines the role an instance will play based on the run config.
+func GetRole(seq int64, c config.RunConfig) Role {
 	switch {
 	case seq <= int64(c.NumHubs):
 		return Hub
@@ -84,29 +75,6 @@ func getRole(seq int64, c config.RunConfig) Role {
 	}
 }
 
-// GenerateMe generates a random  message key/ peer id and returns a PeerInfo
-func GenerateMe(seq int64, c config.RunConfig, ipAddress string) MyInfo {
-	role := getRole(seq, c)
-	// We use the sequence in the random source so we generate a unique key even if another client is running at the same time
-	messageKey, _, err := p2pcrypto.GenerateECDSAKeyPair(rand.New(rand.NewSource(time.Now().UnixNano() + seq)))
-	if err != nil {
-		panic(err)
-	}
-
-	id, err := peer.IDFromPrivateKey(messageKey)
-	if err != nil {
-		panic(err)
-	}
-	privateKey, err := crypto.GenerateKey()
-	if err != nil {
-		panic(err)
-	}
-	address := crypto.PubkeyToAddress(privateKey.PublicKey)
-	port := int64(START_PORT) + seq
-	myPeerInfo := PeerInfo{Id: id, Address: address, Role: role, Port: port, IpAddress: ipAddress}
-	return MyInfo{PeerInfo: myPeerInfo, PrivateKey: *privateKey, MessageKey: messageKey}
-}
-
 // FilterByRole filters a slice of PeerInfos by the given role.
 // It returns a slice containing peers with the given role.
 func FilterByRole(peers []PeerInfo, role Role) []PeerInfo {
@@ -117,4 +85,13 @@ func FilterByRole(peers []PeerInfo, role Role) []PeerInfo {
 		}
 	}
 	return filtered
+}
+
+// GetMessageServicePeers takes in our PeerInfos and returns a slice of p2pms.PeerInfos
+func GetMessageServicePeers(peers []PeerInfo) []p2pms.PeerInfo {
+	peerInfos := []p2pms.PeerInfo{}
+	for _, p := range peers {
+		peerInfos = append(peerInfos, p.PeerInfo)
+	}
+	return peerInfos
 }
