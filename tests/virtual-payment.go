@@ -68,7 +68,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// The outputs folder will be copied when results are collected.
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
-	nClient := nitro.New(ms, chain.NewChainService(seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
+	nClient := nitro.New(ms, chain.NewChainService(ctx, client, runEnv, seq, logDestination), store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
 
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
