@@ -11,20 +11,22 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/statechannels/go-nitro-testground/chain"
 	c "github.com/statechannels/go-nitro-testground/config"
-	m "github.com/statechannels/go-nitro-testground/messaging"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/client/engine"
+	p2pms "github.com/statechannels/go-nitro/client/engine/messageservice/p2p-message-service"
 	"github.com/statechannels/go-nitro/client/engine/store"
 	"github.com/statechannels/go-nitro/protocols"
-
 	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/run"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
 )
+
+// START_PORT is the start of the port range we'll use to issue unique ports.
+const START_PORT = 49000
 
 func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
 
@@ -43,24 +45,42 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	seq := init.GlobalSeq
 	ip := net.MustGetDataNetworkIP()
 
-	config, err := c.GetRunConfig(runEnv)
+	runConfig, err := c.GetRunConfig(runEnv)
 	if err != nil {
 		panic(err)
 	}
-	me := peer.GenerateMe(seq, config, ip.String())
+
+	role := peer.GetRole(seq, runConfig)
+	// We use the sequence in the random source so we generate a unique key even if another client is running at the same time
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+		panic(err)
+	}
+
+	pk := crypto.FromECDSA(privateKey)
+	address := crypto.PubkeyToAddress(privateKey.PublicKey)
+	port := (START_PORT) + int(seq)
+	ipAddress := ip.String()
+
+	// Create the ms using the given key
+	ms := p2pms.NewMessageService(ipAddress, port, pk)
+	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
+
+	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role}
+	me := peer.MyInfo{PeerInfo: mePeerInfo, PrivateKey: *privateKey}
+
 	runEnv.RecordMessage("I am %+v", me)
 
-	utils.RecordRunInfo(me, config, runEnv.R())
-
-	// We wait until everyone has chosen an address.
-	client.MustSignalAndWait(ctx, "peerInfoGenerated", runEnv.TestInstanceCount)
+	utils.RecordRunInfo(me, runConfig, runEnv.R())
 
 	// Broadcasts our info and get peer info from all other instances.
 	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
-	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
+	// Register our peers with the message service
+	ms.AddPeers(peer.GetMessageServicePeers(peers))
+	client.MustSignalAndWait(ctx, "peersAdded", runEnv.TestInstanceCount)
 
-	ms := m.NewP2PMessageService(me, peers, runEnv.R())
+	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
 
 	// We skip the 0x prefix by slicing from index 2
 	shortAddress := me.Address.String()[2:8]
@@ -151,7 +171,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		}
 
 		// Run the job(s)
-		utils.RunJobs(createVirtualPaymentsJob, config.PaymentTestDuration, int64(config.ConcurrentPaymentJobs))
+		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 
