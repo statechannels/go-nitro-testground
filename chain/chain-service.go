@@ -14,11 +14,9 @@ import (
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	NitroAdjudicator "github.com/statechannels/go-nitro/client/engine/chainservice/adjudicator"
 	Create2Deployer "github.com/statechannels/go-nitro/client/engine/chainservice/create2deployer"
-	"github.com/testground/sdk-go/runtime"
-	"github.com/testground/sdk-go/sync"
 )
 
-func NewChainService(ctx context.Context, syncClient sync.Client, runEnv *runtime.RunEnv, seq int64, logDestination io.Writer) chainservice.ChainService {
+func NewChainService(ctx context.Context, seq int64, logDestination io.Writer) chainservice.ChainService {
 	client, err := ethclient.Dial("ws://hardhat:8545/")
 	if err != nil {
 		log.Fatal(err)
@@ -66,11 +64,6 @@ func NewChainService(ctx context.Context, syncClient sync.Client, runEnv *runtim
 			}
 		}
 	}
-
-	// All instances wait for until the NitroAdjudicator has been deployed.
-	contractSetup := sync.State("contractSetup")
-	syncClient.MustSignalEntry(ctx, contractSetup)
-	syncClient.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
 
 	na, err := NitroAdjudicator.NewNitroAdjudicator(naAddress, client)
 	if err != nil {
