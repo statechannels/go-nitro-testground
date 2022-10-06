@@ -10,11 +10,8 @@ There is currently only one test case: [virtual-payment](./tests/virtual-payment
 
 Docker must be installed and the docker daemon must be running.
 
-The tests submit transactions to and listen to events on the [Hardhat network](https://hardhat.org/hardhat-network/docs/overview). Hardhat network can be started [using dockerized hardhat](https://github.com/statechannels/hardhat-docker). Once below instructions are followed to setup testground, the Hardhat docker container must be added to the testground control network:
+The tests submit transactions to and listen to events on the [Hardhat network](https://hardhat.org/hardhat-network/docs/overview). You will need to install [dockerized hardhat](https://github.com/statechannels/hardhat-docker). Simply follow the instructions in the readme.
 
-```sh
-docker network connect testground-control hardhat
-```
 
 ### Instructions
 
@@ -26,6 +23,28 @@ cd testground
 make install
 
 ```
+
+You will need to add an `.env.toml` file to your testground home directory. This file should declare the following configuration: 
+    
+```toml
+[runners."local:docker"]
+additional_hosts = ["hardhat"]
+```
+
+Next, start `hardhat-docker,
+
+```sh
+# !NOTE: Double check no other programs are using that port 8545
+docker run -it -d -p 8545:8545 --name hardhat hardhat
+```
+
+and then add the Hardhat docker container to the testground control network:
+
+```sh
+docker network connect testground-control hardhat
+```
+
+
 
 In a separate console start the daemon:
 
