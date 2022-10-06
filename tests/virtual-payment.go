@@ -134,7 +134,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 					},
 				}}
 
-				r := nClient.CreateVirtualPaymentChannel(randomHub.Address, randomPayee.Address, 0, outcome)
+				r := nClient.CreateVirtualPaymentChannel([]types.Address{randomHub.Address}, randomPayee.Address, 0, outcome)
 
 				channelId = r.ChannelId
 				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
