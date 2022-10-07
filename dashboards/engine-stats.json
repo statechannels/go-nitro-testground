@@ -123,7 +123,7 @@
               "type": "time"
             }
           ],
-          "measurement": "results.go-nitro-testground-virtual-payment.executeSideEffects.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.executeSideEffects.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -171,7 +171,7 @@
             }
           ],
           "hide": true,
-          "measurement": "results.go-nitro-testground-virtual-payment.handleMessage.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.handleMessage.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -219,7 +219,7 @@
             }
           ],
           "hide": true,
-          "measurement": "results.go-nitro-testground-virtual-payment.handleObjectiveRequest.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.handleObjectiveRequest.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -267,7 +267,7 @@
             }
           ],
           "hide": true,
-          "measurement": "results.go-nitro-testground-virtual-payment.attemptProgress.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.attemptProgress.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "D",
@@ -315,10 +315,10 @@
             }
           ],
           "hide": false,
-          "measurement": "results.go-nitro-testground-virtual-payment.sendMessages.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.sendMessages.timer",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT mean(\"mean\") FROM \"results.go-nitro-testground-virtual-payment.sendMessages.timer\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY time(1s) fill(linear)",
+          "query": "SELECT mean(\"mean\") FROM \"diagnostics.go-nitro-testground-virtual-payment.sendMessages.timer\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY time(1s) fill(linear)",
           "rawQuery": false,
           "refId": "E",
           "resultFormat": "time_series",
@@ -440,7 +440,7 @@
               "type": "tag"
             }
           ],
-          "measurement": "results.go-nitro-testground-virtual-payment.attemptProgress.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.attemptProgress.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -571,7 +571,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "results.go-nitro-testground-virtual-payment.executeSideEffects.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.executeSideEffects.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -694,7 +694,7 @@
               "type": "tag"
             }
           ],
-          "measurement": "results.go-nitro-testground-virtual-payment.handleMessage.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.handleMessage.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -813,7 +813,7 @@
               "type": "tag"
             }
           ],
-          "measurement": "results.go-nitro-testground-virtual-payment.messages_queue.gauge",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.messages_queue.gauge",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -851,10 +851,10 @@
             }
           ],
           "hide": false,
-          "measurement": "results.go-nitro-testground-virtual-payment.proposal_queue.gauge",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.proposal_queue.gauge",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT \"value\" FROM \"results.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
+          "query": "SELECT \"value\" FROM \"diagnostics.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
           "rawQuery": true,
           "refId": "B",
           "resultFormat": "time_series",
@@ -891,10 +891,10 @@
             }
           ],
           "hide": false,
-          "measurement": "results.go-nitro-testground-virtual-payment.api_objective_request_queue.gauge",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.api_objective_request_queue.gauge",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT \"value\" FROM \"results.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
+          "query": "SELECT \"value\" FROM \"diagnostics.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
           "rawQuery": false,
           "refId": "C",
           "resultFormat": "time_series",
@@ -931,10 +931,10 @@
             }
           ],
           "hide": false,
-          "measurement": "results.go-nitro-testground-virtual-payment.api_payment_request_queue.gauge",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.api_payment_request_queue.gauge",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT \"value\" FROM \"results.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
+          "query": "SELECT \"value\" FROM \"diagnostics.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
           "rawQuery": false,
           "refId": "D",
           "resultFormat": "time_series",
@@ -971,10 +971,10 @@
             }
           ],
           "hide": false,
-          "measurement": "results.go-nitro-testground-virtual-payment.chain_events_queue.gauge",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.chain_events_queue.gauge",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT \"value\" FROM \"results.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
+          "query": "SELECT \"value\" FROM \"diagnostics.go-nitro-testground-virtual-payment.proposal_queue.gauge\" WHERE (\"run\" =~ /^$runId$/) AND $timeFilter GROUP BY \"wallet\"",
           "rawQuery": false,
           "refId": "E",
           "resultFormat": "time_series",
@@ -1104,7 +1104,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "results.go-nitro-testground-virtual-payment.handleObjectiveRequest.timer",
+          "measurement": "diagnostics.go-nitro-testground-virtual-payment.handleObjectiveRequest.timer",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -1152,13 +1152,13 @@
           "type": "influxdb",
           "uid": "n3gdqUn4k"
         },
-        "definition": " select run,mean from \"results.go-nitro-testground-virtual-payment.handleMessage.timer\" WHERE $timeFilter ",
+        "definition": " select run,mean from \"diagnostics.go-nitro-testground-virtual-payment.handleMessage.timer\" WHERE $timeFilter ",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "runId",
         "options": [],
-        "query": " select run,mean from \"results.go-nitro-testground-virtual-payment.handleMessage.timer\" WHERE $timeFilter ",
+        "query": " select run,mean from \"diagnostics.go-nitro-testground-virtual-payment.handleMessage.timer\" WHERE $timeFilter ",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,

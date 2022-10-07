@@ -71,7 +71,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	runEnv.RecordMessage("I am address:%s role:%d seq:%d", me.Address, me.Role, me.Seq)
 
-	utils.RecordRunInfo(me, runConfig, runEnv.R())
+	utils.RecordRunInfo(me, runConfig, runEnv.D())
 
 	// Broadcasts our info and get peer info from all other instances.
 	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
@@ -94,7 +94,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
 
-	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
+	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
 
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
@@ -149,7 +149,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			runEnv.RecordMessage("Sent payment of %d  wei to %s using channel %s", paymentAmount.Int64(), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(channelId))
 
 			// TODO: Should we wait for receipt of this payment before stopping the time_to_first_payment timer?
-			runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).UpdateSince(ttfpStart)
+			runEnv.D().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).UpdateSince(ttfpStart)
 			// Perform between 1 and 5 payments additional payments
 			amountOfPayments := 1 + rand.Intn(4)
 			for i := 0; i < amountOfPayments; i++ {
@@ -174,7 +174,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
-		runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Stop()
+		runEnv.D().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Stop()
 		toSleep := runConfig.GetSleepDuration()
 		runEnv.RecordMessage("Waiting %s before closing ledger channels", toSleep)
 		time.Sleep(toSleep)
@@ -199,7 +199,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// This allows us to track performance over time
 	// We restrict this to the payer to avoid inserting time_to_first_payment metrics for every client
 	if me.IsPayer() {
-		mean := runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
+		mean := runEnv.D().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
 		if runEnv.BooleanParam("isNightly") {
 			runEnv.R().RecordPoint(fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
 		}
