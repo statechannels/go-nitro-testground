@@ -29,7 +29,9 @@ import (
 const START_PORT = 49000
 
 func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
-
+	// The default frequency of diagnostics is 10 seconds.
+	// That's a bit too slow for most of our test runs.
+	runEnv.D().SetFrequency(1 * time.Second)
 	ctx := context.Background()
 
 	client := init.SyncClient
