@@ -25,11 +25,10 @@ import (
 	"github.com/testground/sdk-go/sync"
 )
 
-// START_PORT is the start of the port range we'll use to issue unique ports.
-const START_PORT = 49000
-
-func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
-
+func CreateMultiHopVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) error {
+	// The default frequency of diagnostics is 10 seconds.
+	// That's a bit too slow for most of our test runs.
+	runEnv.D().SetFrequency(1 * time.Second)
 	ctx := context.Background()
 
 	client := init.SyncClient
@@ -69,9 +68,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
 	me := peer.MyInfo{PeerInfo: mePeerInfo, PrivateKey: *privateKey}
 
-	runEnv.RecordMessage("I am %+v", me)
+	runEnv.RecordMessage("I am address:%s role:%d seq:%d", me.Address, me.Role, me.Seq)
 
-	utils.RecordRunInfo(me, runConfig, runEnv.R())
+	utils.RecordRunInfo(me, runConfig, runEnv.D())
 
 	// Broadcasts our info and get peer info from all other instances.
 	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
@@ -94,7 +93,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
 
-	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
+	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.D())
 
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
@@ -104,13 +103,12 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
-	ledgerIds := []types.Destination{}
-
-	if me.Role != peer.Hub {
-		// Create ledger channels with all the hubs
-		ledgerIds = utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
-
+	ledgerIds := utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
+	if len(ledgerIds) > 0 {
+		runEnv.RecordMessage("%s: Created Ledgers %s", me.Address, utils.AbbreviateSlice(ledgerIds))
 	}
+
+	// Create ledger channels with all the hubs
 
 	client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 
@@ -121,11 +119,14 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-			randomHub := utils.SelectRandom(hubs)
+			numHops := runEnv.IntParam("numOfHops")
+
+			selectedHubs := utils.SelectRandomHubs(hubs, numHops)
+			runEnv.RecordMessage("%s: Selected hubs %s", me.Address, utils.AbbreviateSlice(selectedHubs))
 			randomPayee := utils.SelectRandom(payees)
 
 			var channelId types.Destination
-			runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Time(func() {
+			runEnv.D().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Time(func() {
 
 				outcome := outcome.Exit{outcome.SingleAssetExit{
 					Allocations: outcome.Allocations{
@@ -140,12 +141,12 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 					},
 				}}
 
-				r := nClient.CreateVirtualPaymentChannel([]types.Address{randomHub.Address}, randomPayee.Address, 0, outcome)
+				r := nClient.CreateVirtualPaymentChannel(selectedHubs, randomPayee.Address, 0, outcome)
 
 				channelId = r.ChannelId
 				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
 
-				runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(randomHub.Address))
+				runEnv.RecordMessage("Opened virtual channel %s with %s using hubs %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.AbbreviateSlice(selectedHubs))
 
 				paymentAmount := big.NewInt(utils.KWEI_IN_WEI)
 				nClient.Pay(r.ChannelId, paymentAmount)
@@ -197,7 +198,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	// Record the mean time to first payment to nightly/ci metrics if applicable
 	// This allows us to track performance over time
-	mean := runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
+	mean := runEnv.D().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
 	if runEnv.BooleanParam("isNightly") {
 		runEnv.R().RecordPoint(fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
 	}

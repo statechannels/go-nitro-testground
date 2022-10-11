@@ -37,3 +37,20 @@ numOfPayeePayers = {type = "int", default = 0, desc = "The number of instances t
 numOfPayees = {type = "int", default = 1, desc = "The number of instances that should play the role of the payee"}
 numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
+
+[[testcases]]
+instances = {min = 2, max = 100, default = 5}
+name = "multi-hop-virtual-payment"
+
+[testcases.params]
+concurrentPaymentJobs = {type = "int", desc = "The number of concurrent payment jobs a peer should attempt to maintain", default = 1}
+isCI = {type = "bool", default = false, desc = "Whether this test is being run as from CI"}
+isNightly = {type = "bool", default = false, desc = "Whether this test is being run as part of the nightly test suite"}
+networkJitter = {type = "int", unit = "milliseconds", default = 0}
+networkLatency = {type = "int", unit = "milliseconds", default = 0}
+numOfHops = {type = "int", default = 2, desc = "The number of hops in the multi-hop payment"}
+numOfHubs = {type = "int", default = 3, desc = "The number of instances that should play the role of the hub"}
+numOfPayeePayers = {type = "int", default = 0, desc = "The number of instances that should play the role of the payeepayer"}
+numOfPayees = {type = "int", default = 4, desc = "The number of instances that should play the role of the payee"}
+numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
+paymentTestDuration = {type = "int", default = 10, unit = "seconds"}

@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"math/rand"
 	"runtime/debug"
+	"sort"
 
 	s "sync"
 	"sync/atomic"
@@ -95,6 +96,19 @@ func RunJobs(job func(), duration time.Duration, concurrencyTarget int64) {
 	wg.Wait()
 }
 
+// AbbreviateSlice returns a string with abbreviated elements of the given slice.
+func AbbreviateSlice[U ~[]T, T fmt.Stringer](col U) string {
+	abbreviated := ""
+	for i, s := range col {
+		if i > 0 {
+			abbreviated += ", "
+		}
+		abbreviated += s.String()[0:8]
+	}
+
+	return abbreviated
+}
+
 // Abbreviate shortens a string to 8 characters and adds an ellipsis.
 func Abbreviate(s fmt.Stringer) string {
 	return s.String()[0:8] + ".."
@@ -128,16 +142,50 @@ func SelectRandom[U ~[]T, T any](collection U) T {
 	return collection[randomIndex]
 }
 
+// SelectRandomHubs selects numHub hubs randomly from hubs
+func SelectRandomHubs(hubs []peer.PeerInfo, numHubs int) []types.Address {
+	// Copy and shuffle the slice of hubs
+	shuffled := make([]peer.PeerInfo, len(hubs))
+	copy(shuffled, hubs)
+	rand.Shuffle(len(shuffled),
+		func(i, j int) { shuffled[i], shuffled[j] = shuffled[j], shuffled[i] })
+
+	// Select the amount of hubs we want
+	selected := make([]peer.PeerInfo, numHubs)
+	for i := 0; i < numHubs; i++ {
+		selected[i] = shuffled[i]
+	}
+
+	// TODO: Virtual defunding seems to fail if intermediaries are not in "order".
+	// The order seems to be determined by the initiator of the ledger channel.
+	// Since we use the sequence number to determine the initiator, we can just sort on sequence number.
+	sort.Slice(selected, func(i, j int) bool {
+		return selected[i].Seq < selected[j].Seq
+	})
+
+	// Convert to addresses for the callers convenience
+	selectedAddresses := make([]types.Address, numHubs)
+	for i, hub := range selected {
+		selectedAddresses[i] = hub.Address
+	}
+	return selectedAddresses
+}
+
 // CreateLedgerChannels creates a directly funded ledger channel with each hub in hubs.
 // The funding for each channel will be set to amount for both participants.
 // This function blocks until all ledger channels have successfully been created.
 func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) []types.Destination {
 	ids := []protocols.ObjectiveId{}
 	cIds := []types.Destination{}
-	for _, p := range peers {
-		if p.Role != peer.Hub {
+	hubs := peer.FilterByRole(peers, peer.Hub)
+	for _, p := range hubs {
+
+		// To co-ordinate creating ledger channels between hubs a hub will
+		// only create a channel with another hub if it has a greater sequence number.
+		if me.Role == peer.Hub && p.Seq <= me.Seq {
 			continue
 		}
+
 		outcome := outcome.Exit{outcome.SingleAssetExit{
 			Allocations: outcome.Allocations{
 				outcome.Allocation{
@@ -150,7 +198,6 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 				},
 			},
 		}}
-
 		r := client.CreateLedgerChannel(p.Address, 0, outcome)
 		cIds = append(cIds, r.ChannelId)
 		ids = append(ids, r.Id)
