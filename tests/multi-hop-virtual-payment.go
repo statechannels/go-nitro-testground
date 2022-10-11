@@ -119,7 +119,7 @@ func CreateMultiHopVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitCont
 		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-			numHops := runEnv.IntParam("numOfHops")
+			numHops := runEnv.IntParam("numOfIntermediaries")
 
 			selectedHubs := utils.SelectRandomHubs(hubs, numHops)
 			runEnv.RecordMessage("%s: Selected hubs %s", me.Address, utils.AbbreviateSlice(selectedHubs))
