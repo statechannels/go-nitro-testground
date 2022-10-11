@@ -18,7 +18,7 @@ The tests submit transactions to and listen to events on the [Hardhat network](h
 Install testground and build it:
 
 ```sh
-git clone https://github.com/statechannels/testground.git
+git clone https://github.com/testground/testground.git
 cd testground
 make install
 
