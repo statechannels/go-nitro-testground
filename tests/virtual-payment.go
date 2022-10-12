@@ -49,7 +49,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	if err != nil {
 		panic(err)
 	}
-
+	// Test
 	role := peer.GetRole(seq, runConfig)
 	// We use the sequence in the random source so we generate a unique key even if another client is running at the same time
 	privateKey, err := crypto.GenerateKey()
@@ -183,7 +183,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 
-	if me.Role != peer.Hub {
+	if len(ledgerIds) > 0 {
 		// TODO: Closing a ledger channel too soon after closing a virtual channel seems to fail.
 		time.Sleep(time.Duration(250 * time.Millisecond))
 		// Close all the ledger channels with the hub
