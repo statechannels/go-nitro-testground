@@ -174,6 +174,7 @@ func SelectRandomHubs(hubs []peer.PeerInfo, numHubs int) []types.Address {
 // CreateLedgerChannels creates a directly funded ledger channel with each hub in hubs.
 // The funding for each channel will be set to amount for both participants.
 // This function blocks until all ledger channels have successfully been created.
+// If the participant is a hub we use the participant's Seq to determine the initiator of the ledger channel.
 func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) []types.Destination {
 	ids := []protocols.ObjectiveId{}
 	cIds := []types.Destination{}
