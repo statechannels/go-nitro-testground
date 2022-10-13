@@ -178,6 +178,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
+		// Wait for 1/10 the payment time so any hubs can close their channels
+		// Even though our channels are closed, the hubs could be behind in processing messages.
+		time.Sleep(runConfig.PaymentTestDuration / 10)
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 	// TODO: Closing as a hub seems to fail: https://github.com/statechannels/go-nitro-testground/issues/134
