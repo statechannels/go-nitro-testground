@@ -120,7 +120,6 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-
 			selectedHubs := utils.SelectRandomHubs(hubs, int(runConfig.NumIntermediaries))
 			runEnv.RecordMessage("%s: Selected hubs %s", me.Address, utils.AbbreviateSlice(selectedHubs))
 			randomPayee := utils.SelectRandom(payees)
@@ -181,8 +180,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
-
-	if len(ledgerIds) > 0 {
+	// TODO: Closing as a hub seems to fail: https://github.com/statechannels/go-nitro-testground/issues/134
+	// For now we avoid closing as a hub
+	if len(ledgerIds) > 0 && me.Role != peer.Hub {
 		// TODO: Closing a ledger channel too soon after closing a virtual channel seems to fail.
 		time.Sleep(time.Duration(250 * time.Millisecond))
 		// Close all the ledger channels with the hub
