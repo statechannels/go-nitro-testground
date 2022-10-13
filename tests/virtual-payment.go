@@ -105,9 +105,6 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
 	ledgerIds := utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
-	if len(ledgerIds) > 0 {
-		runEnv.RecordMessage("%s: Created Ledgers %s", me.Address, utils.AbbreviateSlice(ledgerIds))
-	}
 
 	// Create ledger channels with all the hubs
 
@@ -121,7 +118,6 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		createVirtualPaymentsJob := func() {
 			selectedHubs := utils.SelectRandomHubs(hubs, int(runConfig.NumIntermediaries))
-			runEnv.RecordMessage("%s: Selected hubs %s", me.Address, utils.AbbreviateSlice(selectedHubs))
 			randomPayee := utils.SelectRandom(payees)
 
 			var channelId types.Destination
@@ -200,7 +196,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		// Close all the ledger channels with the hub
 		oIds := []protocols.ObjectiveId{}
 		for _, ledgerId := range ledgerIds {
-			runEnv.RecordMessage("Closing ledger %s", utils.Abbreviate(ledgerId))
+
 			oId := nClient.CloseLedgerChannel(ledgerId)
 			oIds = append(oIds, oId)
 		}
