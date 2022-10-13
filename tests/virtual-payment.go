@@ -178,16 +178,25 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
-		// Wait for 1/10 the payment time so any hubs can close their channels
-		// Even though our channels are closed, the hubs could be behind in processing messages.
-		time.Sleep(runConfig.PaymentTestDuration / 10)
+
+		// We wait to allow hubs to finish processing messages and close out their channels.
+		// The duration we wait is based on the payment test duration and the amount of concurrent jobs.
+		toSleep := runConfig.PaymentTestDuration / 10 * time.Duration(runConfig.ConcurrentPaymentJobs)
+		// Restrict the sleep duration to be between 1 and 30 seconds
+		if toSleep > 30*time.Second {
+			toSleep = 30 * time.Second
+		}
+		if toSleep < 1*time.Second {
+			toSleep = 1 * time.Second
+		}
+		runEnv.RecordMessage("Waiting %s before closing ledger channels", toSleep)
+		time.Sleep(toSleep)
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
+
 	// TODO: Closing as a hub seems to fail: https://github.com/statechannels/go-nitro-testground/issues/134
 	// For now we avoid closing as a hub
 	if len(ledgerIds) > 0 && me.Role != peer.Hub {
-		// TODO: Closing a ledger channel too soon after closing a virtual channel seems to fail.
-		time.Sleep(time.Duration(250 * time.Millisecond))
 		// Close all the ledger channels with the hub
 		oIds := []protocols.ObjectiveId{}
 		for _, ledgerId := range ledgerIds {
