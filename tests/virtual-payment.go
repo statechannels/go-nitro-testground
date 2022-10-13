@@ -120,9 +120,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-			numHops := runEnv.IntParam("numOfIntermediaries")
 
-			selectedHubs := utils.SelectRandomHubs(hubs, numHops)
+			selectedHubs := utils.SelectRandomHubs(hubs, int(runConfig.NumIntermediaries))
 			runEnv.RecordMessage("%s: Selected hubs %s", me.Address, utils.AbbreviateSlice(selectedHubs))
 			randomPayee := utils.SelectRandom(payees)
 

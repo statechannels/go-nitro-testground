@@ -13,6 +13,7 @@ type RunConfig struct {
 	NumPayees             uint
 	NumPayers             uint
 	NumPayeePayers        uint
+	NumIntermediaries     uint
 	ConcurrentPaymentJobs uint
 	NetworkJitter         time.Duration
 	NetworkLatency        time.Duration
@@ -37,6 +38,7 @@ func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 	config.NumPayees = uint(runEnv.IntParam(string(numPayeeParam)))
 	config.NumPayers = uint(runEnv.IntParam(string(numPayersParam)))
 	config.NumPayeePayers = uint(runEnv.IntParam(string(NumPayeePayersParam)))
+	config.NumIntermediaries = uint(runEnv.IntParam(string(NumIntermediaries)))
 	config.NetworkJitter = time.Duration(runEnv.IntParam(string(networkJitterParam))) * time.Millisecond
 	config.NetworkLatency = time.Duration(runEnv.IntParam(string(networkLatencyParam))) * time.Millisecond
 	config.PaymentTestDuration = time.Duration(runEnv.IntParam(string(paymentTestDurationParam))) * time.Second
