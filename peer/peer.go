@@ -56,6 +56,12 @@ type MyInfo struct {
 	PrivateKey ecdsa.PrivateKey
 }
 
+// IsGraphRecorder returns true if an instance is responsible for recording the graph to file.
+// We use the first payee instance as they are not too busy.
+func IsGraphRecorder(seq int64, c config.RunConfig) bool {
+	return int64(c.NumHubs+c.NumPayers+c.NumPayees) == seq
+}
+
 // GetRole determines the role an instance will play based on the run config.
 func GetRole(seq int64, c config.RunConfig) Role {
 	switch {

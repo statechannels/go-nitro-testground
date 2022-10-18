@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro/channel/state/outcome"
@@ -175,7 +176,7 @@ func SelectRandomHubs(hubs []peer.PeerInfo, numHubs int) []types.Address {
 // The funding for each channel will be set to amount for both participants.
 // This function blocks until all ledger channels have successfully been created.
 // If the participant is a hub we use the participant's Seq to determine the initiator of the ledger channel.
-func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) []types.Destination {
+func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, gr *GraphRecorder, amount uint, me peer.PeerInfo, peers []peer.PeerInfo) []types.Destination {
 	ids := []protocols.ObjectiveId{}
 	cIds := []types.Destination{}
 	hubs := peer.FilterByRole(peers, peer.Hub)
@@ -200,6 +201,14 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 			},
 		}}
 		r := client.CreateLedgerChannel(p.Address, 0, outcome)
+
+		gr.ObjectiveStatusUpdated(ObjectiveStatusInfo{
+			Id:           r.Id,
+			Time:         time.Now(),
+			Participants: []common.Address{me.Address, p.Address},
+			ChannelId:    r.ChannelId.String(),
+			Status:       "Starting",
+		})
 		cIds = append(cIds, r.ChannelId)
 		ids = append(ids, r.Id)
 	}

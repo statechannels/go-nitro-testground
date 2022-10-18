@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	nitroclient "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/client/engine/store/safesync"
 	"github.com/statechannels/go-nitro/protocols"
@@ -16,10 +18,11 @@ type CompletionMonitor struct {
 	client    *nitroclient.Client
 	quit      chan struct{}
 	log       func(msg string, a ...interface{})
+	gr        *GraphRecorder
 }
 
 // NewCompletionMonitor creates a new completion monitor
-func NewCompletionMonitor(client *nitroclient.Client, logFunc func(msg string, a ...interface{})) *CompletionMonitor {
+func NewCompletionMonitor(client *nitroclient.Client, gr *GraphRecorder, logFunc func(msg string, a ...interface{})) *CompletionMonitor {
 
 	completed := safesync.Map[bool]{}
 
@@ -28,6 +31,7 @@ func NewCompletionMonitor(client *nitroclient.Client, logFunc func(msg string, a
 		client:    client,
 		quit:      make(chan struct{}),
 		log:       logFunc,
+		gr:        gr,
 	}
 	go c.watch()
 	return c
@@ -51,6 +55,13 @@ func (c *CompletionMonitor) watch() {
 	for {
 		select {
 		case id := <-c.client.CompletedObjectives():
+			c.gr.ObjectiveStatusUpdated(ObjectiveStatusInfo{
+				Id:           id,
+				Time:         time.Now(),
+				Participants: []common.Address{},
+				ChannelId:    strings.Split(string(id), "-")[1],
+				Status:       "Completed",
+			})
 			c.completed.Store(string(id), true)
 		case <-c.quit:
 			return
