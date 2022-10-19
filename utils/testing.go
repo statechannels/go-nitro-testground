@@ -43,8 +43,9 @@ func ConfigureNetworkClient(ctx context.Context, netClient *network.Client, sync
 
 		config := network.Config{
 			// Control the "default" network. At the moment, this is the only network.
-			Network: "default",
-			Enable:  true,
+			Network:       "default",
+			Enable:        true,
+			RoutingPolicy: network.AllowAll,
 
 			// Set the traffic shaping characteristics.
 			Default: network.LinkShape{
