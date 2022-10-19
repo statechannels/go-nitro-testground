@@ -6,6 +6,9 @@ runner = "local:exec"
 [builders."docker:go"]
 build_base_image = "golang:1.19-buster"
 enabled = true
+[builders."docker:go".dockerfile_extensions]
+post_runtime_copy = "COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt"
+pre_source_copy = "RUN update-ca-certificates --verbose"
 
 [builders."exec:go"]
 enabled = true
