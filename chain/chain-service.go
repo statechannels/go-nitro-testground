@@ -5,11 +5,14 @@ import (
 	"io"
 	"log"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 )
 
 func NewChainService(ctx context.Context, seq int64, logDestination io.Writer) chainservice.ChainService {
-	fcs, err := chainservice.NewFevmChainService("https://wallaby.node.glif.io/rpc/v0", "9182b5bf5b9c966e001934ebaf008f65516290cef6e3069d11e718cbd4336aae", log.Default().Writer())
+	pk := common.Bytes2Hex(crypto.FromECDSA(getFundedPrivateKey(uint(seq))))
+	fcs, err := chainservice.NewFevmChainService("https://wallaby.node.glif.io/rpc/v0", pk, log.Default().Writer())
 	if err != nil {
 		panic(err)
 	}

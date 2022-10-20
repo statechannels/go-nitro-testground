@@ -89,7 +89,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
-	cs := chain.NewChainService(ctx, seq, logDestination)
+	cs := chain.NewChainService(ctx,  seq, logDestination)
 	contractSetup := sync.State("contractSetup")
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
