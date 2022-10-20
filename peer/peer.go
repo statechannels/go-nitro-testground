@@ -26,6 +26,7 @@ const (
 type PeerInfo struct {
 	p2pms.PeerInfo
 	Role Role
+	Seq  int64
 }
 
 // IsPayer returns true if the peer's role is a Payer or PayeePayer

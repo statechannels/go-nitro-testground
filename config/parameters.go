@@ -8,6 +8,7 @@ const (
 	numPayeeParam              param = "numOfPayees"
 	numPayersParam             param = "numOfPayers"
 	NumPayeePayersParam        param = "numOfPayeePayers"
+	NumIntermediaries          param = "numOfIntermediaries"
 	networkJitterParam         param = "networkJitter"
 	networkLatencyParam        param = "networkLatency"
 	concurrentPaymentJobsParam param = "concurrentPaymentJobs"

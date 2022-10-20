@@ -49,7 +49,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	if err != nil {
 		panic(err)
 	}
-
+	// Test
 	role := peer.GetRole(seq, runConfig)
 	// We use the sequence in the random source so we generate a unique key even if another client is running at the same time
 	privateKey, err := crypto.GenerateKey()
@@ -66,10 +66,10 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	ms := p2pms.NewMessageService(ipAddress, port, pk)
 	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
 
-	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role}
+	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
 	me := peer.MyInfo{PeerInfo: mePeerInfo, PrivateKey: *privateKey}
 
-	runEnv.RecordMessage("I am %+v", me)
+	runEnv.RecordMessage("I am address:%s role:%d seq:%d", me.Address, me.Role, me.Seq)
 
 	utils.RecordRunInfo(me, runConfig, runEnv.R())
 
@@ -104,13 +104,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
-	ledgerIds := []types.Destination{}
-
-	if me.Role != peer.Hub {
-		// Create ledger channels with all the hubs
-		ledgerIds = utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
-
-	}
+	// Create ledger channels with all the hubs
+	ledgerIds := utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
 
 	client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 
@@ -121,7 +116,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		payees = append(payees, peer.FilterByRole(peers, peer.PayerPayee)...)
 
 		createVirtualPaymentsJob := func() {
-			randomHub := utils.SelectRandom(hubs)
+			selectedHubs := utils.SelectRandomHubs(hubs, int(runConfig.NumIntermediaries))
 			randomPayee := utils.SelectRandom(payees)
 
 			var channelId types.Destination
@@ -140,12 +135,12 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 					},
 				}}
 
-				r := nClient.CreateVirtualPaymentChannel([]types.Address{randomHub.Address}, randomPayee.Address, 0, outcome)
+				r := nClient.CreateVirtualPaymentChannel(selectedHubs, randomPayee.Address, 0, outcome)
 
 				channelId = r.ChannelId
 				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
 
-				runEnv.RecordMessage("Opened virtual channel %s with %s using hub %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(randomHub.Address))
+				runEnv.RecordMessage("Opened virtual channel %s with %s using hubs %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.AbbreviateSlice(selectedHubs))
 
 				paymentAmount := big.NewInt(utils.KWEI_IN_WEI)
 				nClient.Pay(r.ChannelId, paymentAmount)
@@ -178,16 +173,29 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
+
+		// We wait to allow hubs to finish processing messages and close out their channels.
+		// The duration we wait is based on the payment test duration and the amount of concurrent jobs.
+		toSleep := runConfig.PaymentTestDuration / 10 * time.Duration(runConfig.ConcurrentPaymentJobs)
+		// Restrict the sleep duration to be between 1 and 30 seconds
+		if toSleep > 30*time.Second {
+			toSleep = 30 * time.Second
+		}
+		if toSleep < 1*time.Second {
+			toSleep = 1 * time.Second
+		}
+		runEnv.RecordMessage("Waiting %s before closing ledger channels", toSleep)
+		time.Sleep(toSleep)
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 
-	if me.Role != peer.Hub {
-		// TODO: Closing a ledger channel too soon after closing a virtual channel seems to fail.
-		time.Sleep(time.Duration(250 * time.Millisecond))
+	// TODO: Closing as a hub seems to fail: https://github.com/statechannels/go-nitro-testground/issues/134
+	// For now we avoid closing as a hub
+	if len(ledgerIds) > 0 && me.Role != peer.Hub {
 		// Close all the ledger channels with the hub
 		oIds := []protocols.ObjectiveId{}
 		for _, ledgerId := range ledgerIds {
-			runEnv.RecordMessage("Closing ledger %s", utils.Abbreviate(ledgerId))
+
 			oId := nClient.CloseLedgerChannel(ledgerId)
 			oIds = append(oIds, oId)
 		}
