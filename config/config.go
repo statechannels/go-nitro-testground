@@ -47,3 +47,18 @@ func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 
 	return config, err
 }
+
+// GetSleepDuration calculates the duration to sleep before and after the payment test.
+func (c *RunConfig) GetSleepDuration() time.Duration {
+
+	// The duration we wait is based on the payment test duration and the amount of concurrent jobs.
+	toSleep := (c.PaymentTestDuration / 10) * time.Duration(c.ConcurrentPaymentJobs)
+	// Restrict the sleep duration to be between 1 and 30 seconds
+	if toSleep > 30*time.Second {
+		toSleep = 30 * time.Second
+	}
+	if toSleep < 1*time.Second {
+		toSleep = 1 * time.Second
+	}
+	return toSleep
+}

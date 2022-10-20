@@ -108,6 +108,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	ledgerIds := utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
 
 	client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
+	toSleep := runConfig.GetSleepDuration()
+	runEnv.RecordMessage("Waiting %s before starting payments", toSleep)
+	time.Sleep(toSleep)
 
 	if me.IsPayer() {
 
@@ -174,16 +177,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
 
-		// We wait to allow hubs to finish processing messages and close out their channels.
-		// The duration we wait is based on the payment test duration and the amount of concurrent jobs.
-		toSleep := runConfig.PaymentTestDuration / 10 * time.Duration(runConfig.ConcurrentPaymentJobs)
-		// Restrict the sleep duration to be between 1 and 30 seconds
-		if toSleep > 30*time.Second {
-			toSleep = 30 * time.Second
-		}
-		if toSleep < 1*time.Second {
-			toSleep = 1 * time.Second
-		}
+		toSleep := runConfig.GetSleepDuration()
 		runEnv.RecordMessage("Waiting %s before closing ledger channels", toSleep)
 		time.Sleep(toSleep)
 	}
