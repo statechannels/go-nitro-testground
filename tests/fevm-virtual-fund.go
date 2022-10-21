@@ -174,9 +174,6 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
 
-		toSleep := runConfig.GetSleepDuration()
-		runEnv.RecordMessage("Waiting %s before closing ledger channels", toSleep)
-		time.Sleep(toSleep)
 	}
 
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
