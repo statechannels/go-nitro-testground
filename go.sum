@@ -864,6 +864,12 @@ github.com/statechannels/go-nitro v0.0.0-20221021195837-64ecd49b4dda h1:UqNpX8ep
 github.com/statechannels/go-nitro v0.0.0-20221021195837-64ecd49b4dda/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
 github.com/statechannels/go-nitro v0.0.0-20221021200956-19032db0e56c h1:eYQpkg8/lnPw+3Iqt9xLw42Ll2MCC6a6AbTt81gT3zo=
 github.com/statechannels/go-nitro v0.0.0-20221021200956-19032db0e56c/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
+github.com/statechannels/go-nitro v0.0.0-20221021203224-d1e19e21364e h1:a++TqWQqaQ4K/n4PuNdTp0F57FxnEYpUVuEi9NoAb6U=
+github.com/statechannels/go-nitro v0.0.0-20221021203224-d1e19e21364e/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
+github.com/statechannels/go-nitro v0.0.0-20221021210233-c51873e21491 h1:2VVKg0yYv+e4VMZObUED5wegnSDIkEIo6IHx94+50C0=
+github.com/statechannels/go-nitro v0.0.0-20221021210233-c51873e21491/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
+github.com/statechannels/go-nitro v0.0.0-20221021210610-1bf9a6bcaea1 h1:aNJVcfx3NYL/KlrsVwivspcIV+8PcTFlI+YFASW4e4Y=
+github.com/statechannels/go-nitro v0.0.0-20221021210610-1bf9a6bcaea1/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4 h1:Gb2Tyox57NRNuZ2d3rmvB3pcmbu7O1RS3m8WRx7ilrg=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
