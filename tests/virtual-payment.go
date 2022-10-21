@@ -174,7 +174,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
-
+		runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Stop()
 		toSleep := runConfig.GetSleepDuration()
 		runEnv.RecordMessage("Waiting %s before closing ledger channels", toSleep)
 		time.Sleep(toSleep)
