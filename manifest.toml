@@ -38,3 +38,20 @@ numOfPayeePayers = {type = "int", default = 0, desc = "The number of instances t
 numOfPayees = {type = "int", default = 1, desc = "The number of instances that should play the role of the payee"}
 numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
+
+[[testcases]]
+instances = {min = 2, max = 100, default = 5}
+name = "FEVM-virtual-payment"
+
+[testcases.params]
+concurrentPaymentJobs = {type = "int", desc = "The number of concurrent payment jobs a peer should attempt to maintain", default = 1}
+isCI = {type = "bool", default = false, desc = "Whether this test is being run as from CI"}
+isNightly = {type = "bool", default = false, desc = "Whether this test is being run as part of the nightly test suite"}
+networkJitter = {type = "int", unit = "milliseconds", default = 0}
+networkLatency = {type = "int", unit = "milliseconds", default = 0}
+numOfHubs = {type = "int", default = 1, desc = "The number of instances that should play the role of the hub"}
+numOfIntermediaries = {type = "int", default = 1, desc = "The number of intermediaries(hops) to use in the virtual payment channel"}
+numOfPayeePayers = {type = "int", default = 0, desc = "The number of instances that should play the role of the payeepayer"}
+numOfPayees = {type = "int", default = 1, desc = "The number of instances that should play the role of the payee"}
+numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
+paymentTestDuration = {type = "int", default = 10, unit = "seconds"}

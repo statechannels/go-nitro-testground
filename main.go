@@ -8,6 +8,7 @@ import (
 
 func main() {
 	run.InvokeMap(map[string]interface{}{
-		"virtual-payment": run.InitializedTestCaseFn(tests.CreateVirtualPaymentTest),
+		"virtual-payment":      run.InitializedTestCaseFn(tests.CreateVirtualPaymentTest),
+		"fevm-virtual-payment": run.InitializedTestCaseFn(tests.CreateFEVMVirtualFundTest),
 	})
 }
