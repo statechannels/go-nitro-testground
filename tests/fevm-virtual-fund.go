@@ -8,7 +8,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	filecoinAddress "github.com/filecoin-project/go-address"
 	c "github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
@@ -91,6 +93,9 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
 
+	nitroAddress := common.Hex2Bytes("0xFF000000000000000000000000000000000003fA")
+	fileCoiAddress, _ := filecoinAddress.NewSecp256k1Address(nitroAddress)
+	runEnv.RecordMessage("Using adjudicator address: %s", fileCoiAddress.String())
 	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
 
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
@@ -175,7 +180,7 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
 
 	}
-
+	runEnv.RecordMessage("All done!")
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
 
 	return nil
