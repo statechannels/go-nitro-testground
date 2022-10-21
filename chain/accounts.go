@@ -7,9 +7,9 @@ import (
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
-// getFundedPrivateKey returns a funded private key for a given sequence number
+// GetFundedPrivateKey returns a funded private key for a given sequence number
 // It will always return the same private key for a given sequence number
-func getFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
+func GetFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
 	// See https://hardhat.org/hardhat-network/docs/reference#accounts for defaults
 	// This is the default mnemonic used by hardhat
 	const HARDHAT_MNEMONIC = "test test test test test test test test test test test junk"

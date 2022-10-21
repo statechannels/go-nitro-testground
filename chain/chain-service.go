@@ -22,7 +22,7 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer) c
 		log.Fatal(err)
 	}
 
-	txSubmitter, err := bind.NewKeyedTransactorWithChainID(getFundedPrivateKey(uint(seq)), big.NewInt(1337))
+	txSubmitter, err := bind.NewKeyedTransactorWithChainID(GetFundedPrivateKey(uint(seq)), big.NewInt(1337))
 	if err != nil {
 		log.Fatal(err)
 	}
