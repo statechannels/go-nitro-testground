@@ -123,35 +123,33 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 			randomPayee := utils.SelectRandom(payees)
 
 			var channelId types.Destination
-			runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Time(func() {
-
-				outcome := outcome.Exit{outcome.SingleAssetExit{
-					Allocations: outcome.Allocations{
-						outcome.Allocation{
-							Destination: types.AddressToDestination(me.Address),
-							Amount:      big.NewInt(int64(10 * utils.GWEI_IN_WEI)),
-						},
-						outcome.Allocation{
-							Destination: types.AddressToDestination(randomPayee.Address),
-							Amount:      big.NewInt(0),
-						},
+			ttfpStart := time.Now()
+			outcome := outcome.Exit{outcome.SingleAssetExit{
+				Allocations: outcome.Allocations{
+					outcome.Allocation{
+						Destination: types.AddressToDestination(me.Address),
+						Amount:      big.NewInt(int64(10 * utils.GWEI_IN_WEI)),
 					},
-				}}
+					outcome.Allocation{
+						Destination: types.AddressToDestination(randomPayee.Address),
+						Amount:      big.NewInt(0),
+					},
+				},
+			}}
 
-				r := nClient.CreateVirtualPaymentChannel(selectedHubs, randomPayee.Address, 0, outcome)
+			r := nClient.CreateVirtualPaymentChannel(selectedHubs, randomPayee.Address, 0, outcome)
 
-				channelId = r.ChannelId
-				cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
+			channelId = r.ChannelId
+			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
 
-				runEnv.RecordMessage("Opened virtual channel %s with %s using hubs %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.AbbreviateSlice(selectedHubs))
+			runEnv.RecordMessage("Opened virtual channel %s with %s using hubs %s", utils.Abbreviate(channelId), utils.Abbreviate(randomPayee.Address), utils.AbbreviateSlice(selectedHubs))
 
-				paymentAmount := big.NewInt(utils.KWEI_IN_WEI)
-				nClient.Pay(r.ChannelId, paymentAmount)
-				runEnv.RecordMessage("Sent payment of %d  wei to %s using channel %s", paymentAmount.Int64(), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(channelId))
+			paymentAmount := big.NewInt(utils.KWEI_IN_WEI)
+			nClient.Pay(r.ChannelId, paymentAmount)
+			runEnv.RecordMessage("Sent payment of %d  wei to %s using channel %s", paymentAmount.Int64(), utils.Abbreviate(randomPayee.Address), utils.Abbreviate(channelId))
 
-				// TODO: Should we wait for receipt of this payment before stopping the time_to_first_payment timer?
-			})
-
+			// TODO: Should we wait for receipt of this payment before stopping the time_to_first_payment timer?
+			runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).UpdateSince(ttfpStart)
 			// Perform between 1 and 5 payments additional payments
 			amountOfPayments := 1 + rand.Intn(4)
 			for i := 0; i < amountOfPayments; i++ {
