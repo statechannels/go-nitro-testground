@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	filecoinAddress "github.com/filecoin-project/go-address"
 	c "github.com/statechannels/go-nitro-testground/config"
@@ -56,13 +55,13 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 		panic(err)
 	}
 
-	pk := crypto.FromECDSA(privateKey)
+	naPk := crypto.FromECDSA(privateKey)
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	port := (START_PORT) + int(seq)
 	ipAddress := ip.String()
 
 	// Create the ms using the given key
-	ms := p2pms.NewMessageService(ipAddress, port, pk)
+	ms := p2pms.NewMessageService(ipAddress, port, naPk)
 	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
 
 	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
@@ -93,9 +92,8 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
 
-	nitroAddress := common.Hex2Bytes("0xFF000000000000000000000000000000000003fA")
-	fileCoiAddress, _ := filecoinAddress.NewSecp256k1Address(nitroAddress)
-	runEnv.RecordMessage("Using adjudicator address: %s", fileCoiAddress.String())
+	f1Address, _ := filecoinAddress.NewSecp256k1Address(naPk)
+	runEnv.RecordMessage("Using adjudicator address: %s", f1Address)
 	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
 
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
