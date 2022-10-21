@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	filecoinAddress "github.com/filecoin-project/go-address"
 	c "github.com/statechannels/go-nitro-testground/config"
@@ -92,8 +91,9 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 	contractSetup := sync.State("contractSetup")
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
+	adjPk, _ := crypto.HexToECDSA("716b7161580785bc96a4344eb52d23131aea0caf42a52dcf9f8aee9eef9dc3cd")
+	f1Address, _ := filecoinAddress.NewSecp256k1Address(crypto.FromECDSAPub(&adjPk.PublicKey))
 
-	f1Address, _ := filecoinAddress.NewSecp256k1Address(common.Hex2Bytes("0xFF000000000000000000000000000000000003fA"))
 	runEnv.RecordMessage("Using adjudicator address: %s", f1Address)
 	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
 
