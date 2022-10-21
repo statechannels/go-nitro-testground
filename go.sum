@@ -860,6 +860,10 @@ github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnIn
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/statechannels/go-nitro v0.0.0-20221021183348-6a82db30579a h1:WOcfLjzke+87uPXrWaf4fgFsPyeApeWuykrSZq2f3kQ=
 github.com/statechannels/go-nitro v0.0.0-20221021183348-6a82db30579a/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
+github.com/statechannels/go-nitro v0.0.0-20221021195837-64ecd49b4dda h1:UqNpX8ep7Ul6GF+6OQW8FIop7jEhksJAuyztDZPCWCs=
+github.com/statechannels/go-nitro v0.0.0-20221021195837-64ecd49b4dda/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
+github.com/statechannels/go-nitro v0.0.0-20221021200956-19032db0e56c h1:eYQpkg8/lnPw+3Iqt9xLw42Ll2MCC6a6AbTt81gT3zo=
+github.com/statechannels/go-nitro v0.0.0-20221021200956-19032db0e56c/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4 h1:Gb2Tyox57NRNuZ2d3rmvB3pcmbu7O1RS3m8WRx7ilrg=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

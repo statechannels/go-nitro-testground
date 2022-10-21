@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/statechannels/go-nitro-testground/chain"
 	c "github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro-testground/utils"
@@ -86,7 +87,7 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
-	cs := chainservice.NewFevmChainService()
+	cs := chainservice.NewFevmChainService(chain.GetFundedPrivateKey(uint(seq)))
 	contractSetup := sync.State("contractSetup")
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
