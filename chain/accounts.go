@@ -17,7 +17,7 @@ func GetFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
 	// If that value changes, this value must change as well
 	const NUM_FUNDED = 1000
 	// This is the default hd wallet path used by hardhat
-	const HD_PATH = "m/44'/60'/0'/0"
+	const HD_PATH = "m/44'/1'/0'/0"
 
 	ourIndex := seq - 1 // seq starts at 1
 
