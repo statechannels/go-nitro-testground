@@ -44,7 +44,7 @@ paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
 
 [[testcases]]
 instances = {min = 2, max = 100, default = 5}
-name = "FEVM-virtual-payment"
+name = "fevm-virtual-payment"
 
 [testcases.params]
 concurrentPaymentJobs = {type = "int", desc = "The number of concurrent payment jobs a peer should attempt to maintain", default = 1}
