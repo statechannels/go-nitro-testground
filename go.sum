@@ -858,16 +858,6 @@ github.com/spf13/pflag v0.0.0-20170130214245-9ff6c6923cff/go.mod h1:DYY7MBk1bdzu
 github.com/spf13/pflag v1.0.1-0.20171106142849-4c012f6dcd95/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
-github.com/statechannels/go-nitro v0.0.0-20221021183348-6a82db30579a h1:WOcfLjzke+87uPXrWaf4fgFsPyeApeWuykrSZq2f3kQ=
-github.com/statechannels/go-nitro v0.0.0-20221021183348-6a82db30579a/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
-github.com/statechannels/go-nitro v0.0.0-20221021195837-64ecd49b4dda h1:UqNpX8ep7Ul6GF+6OQW8FIop7jEhksJAuyztDZPCWCs=
-github.com/statechannels/go-nitro v0.0.0-20221021195837-64ecd49b4dda/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
-github.com/statechannels/go-nitro v0.0.0-20221021200956-19032db0e56c h1:eYQpkg8/lnPw+3Iqt9xLw42Ll2MCC6a6AbTt81gT3zo=
-github.com/statechannels/go-nitro v0.0.0-20221021200956-19032db0e56c/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
-github.com/statechannels/go-nitro v0.0.0-20221021203224-d1e19e21364e h1:a++TqWQqaQ4K/n4PuNdTp0F57FxnEYpUVuEi9NoAb6U=
-github.com/statechannels/go-nitro v0.0.0-20221021203224-d1e19e21364e/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
-github.com/statechannels/go-nitro v0.0.0-20221021210233-c51873e21491 h1:2VVKg0yYv+e4VMZObUED5wegnSDIkEIo6IHx94+50C0=
-github.com/statechannels/go-nitro v0.0.0-20221021210233-c51873e21491/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
 github.com/statechannels/go-nitro v0.0.0-20221021210610-1bf9a6bcaea1 h1:aNJVcfx3NYL/KlrsVwivspcIV+8PcTFlI+YFASW4e4Y=
 github.com/statechannels/go-nitro v0.0.0-20221021210610-1bf9a6bcaea1/go.mod h1:93F7T78Ad+kXdlKWbJU4ncGTS1jNJDmyEFZc32KImIc=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4 h1:Gb2Tyox57NRNuZ2d3rmvB3pcmbu7O1RS3m8WRx7ilrg=
