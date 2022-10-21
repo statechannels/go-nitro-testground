@@ -199,14 +199,16 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	// Record the mean time to first payment to nightly/ci metrics if applicable
 	// This allows us to track performance over time
-	mean := runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
-	if runEnv.BooleanParam("isNightly") {
-		runEnv.R().RecordPoint(fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
+	// We restrict this to the payer to avoid inserting time_to_first_payment metrics for every client
+	if me.IsPayer() {
+		mean := runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
+		if runEnv.BooleanParam("isNightly") {
+			runEnv.R().RecordPoint(fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
+		}
+		if runEnv.BooleanParam("isCI") {
+			runEnv.R().RecordPoint(fmt.Sprintf("ci_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
+		}
 	}
-	if runEnv.BooleanParam("isCI") {
-		runEnv.R().RecordPoint(fmt.Sprintf("ci_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
-	}
-
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
 
 	return nil
