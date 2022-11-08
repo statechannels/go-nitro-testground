@@ -200,19 +200,19 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	mean := runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
 	if runEnv.BooleanParam("isNightly") {
 		runEnv.R().RecordPoint(
-			fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s,nitroVersion=%s,date=%s",
+			fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s,nitroVersion=%s,runCompletedAt=%s",
 				me.Address,
 				utils.GetVersion("github.com/statechannels/go-nitro"),
-				time.Now().Format("2006-01-02"),
+				time.Now().Format("2006-01-02 15:04:05"),
 			), float64(mean))
 	}
 
 	if runEnv.BooleanParam("isCI") {
 		runEnv.R().RecordPoint(
-			fmt.Sprintf("ci_mean_time_to_first_payment,me=%s,nitroVersion=%s,date=%s",
+			fmt.Sprintf("ci_mean_time_to_first_payment,me=%s,nitroVersion=%s,runCompletedAt=%s",
 				me.Address,
 				utils.GetVersion("github.com/statechannels/go-nitro"),
-				time.Now().Format("2006-01-02"),
+				time.Now().Format("2006-01-02 15:04:05"),
 			), float64(mean))
 	}
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
