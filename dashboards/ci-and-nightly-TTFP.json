@@ -68,12 +68,11 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisGridShow": true,
             "axisLabel": "",
             "axisPlacement": "auto",
             "fillOpacity": 80,
@@ -89,6 +88,8 @@
             }
           },
           "mappings": [],
+          "min": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -97,8 +98,12 @@
                 "value": null
               },
               {
+                "color": "yellow",
+                "value": 75000000
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 100000000
               }
             ]
           },
@@ -112,25 +117,26 @@
         "x": 0,
         "y": 0
       },
-      "id": 4,
+      "id": 6,
       "options": {
         "barRadius": 0,
-        "barWidth": 0.97,
+        "barWidth": 0.62,
+        "colorByField": "mean",
         "groupWidth": 0.7,
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "right",
+          "placement": "bottom",
           "showLegend": true
         },
         "orientation": "horizontal",
-        "showValue": "never",
+        "showValue": "auto",
         "stacking": "none",
         "tooltip": {
           "mode": "multi",
-          "sort": "asc"
+          "sort": "none"
         },
-        "xField": "run",
+        "xField": "runCompletedAt",
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
@@ -147,13 +153,25 @@
                 "run"
               ],
               "type": "tag"
+            },
+            {
+              "params": [
+                "nitroVersion"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "runCompletedAt"
+              ],
+              "type": "tag"
             }
           ],
-          "measurement": "results.go-nitro-testground-virtual-payment.ci_mean_time_to_first_payment.point",
+          "measurement": "results.go-nitro-testground-virtual-payment.nightly_mean_time_to_first_payment.point",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT    min(\"value\"),mean(\"value\"), max(\"value\") FROM \"results.go-nitro-testground-virtual-payment.nightly_mean_time_to_first_payment.point\" WHERE $timeFilter and value!=0 GROUP BY \"run\"",
-          "rawQuery": true,
+          "query": "SELECT    mean(\"value\") FROM \"results.go-nitro-testground-virtual-payment.nightly_mean_time_to_first_payment.point\" WHERE $timeFilter and value!=0 GROUP BY \"run\"",
+          "rawQuery": false,
           "refId": "A",
           "resultFormat": "table",
           "select": [
@@ -168,20 +186,12 @@
                 "params": [],
                 "type": "mean"
               }
-            ],
-            [
-              {
-                "params": [
-                  "time"
-                ],
-                "type": "field"
-              }
             ]
           ],
           "tags": []
         }
       ],
-      "title": "Nightly TTFP",
+      "title": "Nightly Mean TTFP",
       "type": "barchart"
     },
     {
@@ -189,16 +199,15 @@
         "type": "influxdb",
         "uid": "${DS_INFLUXDB}"
       },
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisGridShow": true,
-            "axisLabel": "",
             "axisPlacement": "auto",
             "fillOpacity": 80,
             "gradientMode": "none",
@@ -213,6 +222,8 @@
             }
           },
           "mappings": [],
+          "min": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -221,8 +232,12 @@
                 "value": null
               },
               {
+                "color": "yellow",
+                "value": 75000000
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 100000000
               }
             ]
           },
@@ -236,25 +251,26 @@
         "x": 12,
         "y": 0
       },
-      "id": 3,
+      "id": 5,
       "options": {
         "barRadius": 0,
-        "barWidth": 0.97,
+        "barWidth": 0.62,
+        "colorByField": "mean",
         "groupWidth": 0.7,
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "right",
+          "placement": "bottom",
           "showLegend": true
         },
         "orientation": "horizontal",
-        "showValue": "never",
+        "showValue": "auto",
         "stacking": "none",
         "tooltip": {
           "mode": "multi",
-          "sort": "asc"
+          "sort": "none"
         },
-        "xField": "run",
+        "xField": "runCompletedAt",
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
@@ -271,13 +287,25 @@
                 "run"
               ],
               "type": "tag"
+            },
+            {
+              "params": [
+                "nitroVersion"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "runCompletedAt"
+              ],
+              "type": "tag"
             }
           ],
           "measurement": "results.go-nitro-testground-virtual-payment.ci_mean_time_to_first_payment.point",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT    min(\"value\"),mean(\"value\"), max(\"value\") FROM \"results.go-nitro-testground-virtual-payment.ci_mean_time_to_first_payment.point\" WHERE $timeFilter and value!=0 GROUP BY \"run\"",
-          "rawQuery": true,
+          "query": "SELECT    mean(\"value\") FROM \"results.go-nitro-testground-virtual-payment.nightly_mean_time_to_first_payment.point\" WHERE $timeFilter and value!=0 GROUP BY \"run\"",
+          "rawQuery": false,
           "refId": "A",
           "resultFormat": "table",
           "select": [
@@ -292,20 +320,12 @@
                 "params": [],
                 "type": "mean"
               }
-            ],
-            [
-              {
-                "params": [
-                  "time"
-                ],
-                "type": "field"
-              }
             ]
           ],
           "tags": []
         }
       ],
-      "title": "CI TTFP",
+      "title": "CI Mean TTFP",
       "type": "barchart"
     }
   ],
@@ -317,13 +337,13 @@
     "list": []
   },
   "time": {
-    "from": "now-5y",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "CI and Nightly TTFP",
   "uid": "HcF7hb4Vz",
-  "version": 6,
+  "version": 8,
   "weekStart": ""
 }
