@@ -204,7 +204,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 				fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s,nitroVersion=%s,runCompletedAt=%s",
 					me.Address,
 					utils.GetVersion("github.com/statechannels/go-nitro"),
-					time.Now().Format("2006-01-02 15:04:05"),
+					time.Now().Format("2006-01-02 15:04"),
 				), float64(mean))
 		}
 
@@ -213,7 +213,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 				fmt.Sprintf("ci_mean_time_to_first_payment,me=%s,nitroVersion=%s,runCompletedAt=%s",
 					me.Address,
 					utils.GetVersion("github.com/statechannels/go-nitro"),
-					time.Now().Format("2006-01-02 15:04:05"),
+					time.Now().Format("2006-01-02 15:04"),
 				), float64(mean))
 		}
 	}
