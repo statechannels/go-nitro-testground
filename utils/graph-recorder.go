@@ -89,8 +89,10 @@ func NewGraphRecorder(me peer.PeerInfo, peers []peer.PeerInfo, config config.Run
 		graph:      graph,
 		syncClient: syncClient,
 	}
-	// Start listening for changes from other participants
-	go gr.listenForShared(context.Background())
+	if peer.IsGraphRecorder(gr.me.Seq, gr.config) {
+		// Start listening for changes from other participants
+		go gr.listenForShared(context.Background())
+	}
 
 	return gr
 }
@@ -123,46 +125,47 @@ func (gr *GraphRecorder) listenForShared(ctx context.Context) {
 func (gr *GraphRecorder) ObjectiveStatusUpdated(info ObjectiveStatusInfo) {
 	if !peer.IsGraphRecorder(gr.me.Seq, gr.config) {
 		gr.syncClient.MustPublish(context.Background(), gr.objectiveStatusChangedTopic(), info)
-	}
+	} else {
 
-	isCreateChannel := (strings.Contains(string(info.Id), "VirtualFund") || strings.Contains(string(info.Id), "DirectFund")) && info.Status == Starting
-	isCloseChannel := (strings.Contains(string(info.Id), "VirtualDefund") || strings.Contains(string(info.Id), "DirectDefund")) && info.Status == Completed
+		isCreateChannel := (strings.Contains(string(info.Id), "VirtualFund") || strings.Contains(string(info.Id), "DirectFund")) && info.Status == Starting
+		isCloseChannel := (strings.Contains(string(info.Id), "VirtualDefund") || strings.Contains(string(info.Id), "DirectDefund")) && info.Status == Completed
 
-	if isCreateChannel {
-		channelType := "ledger"
-		if strings.Contains(string(info.Id), "VirtualFund") {
-			channelType = "virtual"
+		if isCreateChannel {
+			channelType := "ledger"
+			if strings.Contains(string(info.Id), "VirtualFund") {
+				channelType = "virtual"
+			}
+
+			attValues := gexf12.AttValues{
+				AttValues: []gexf12.AttValue{
+					{For: "channelId", Value: info.ChannelId},
+					{For: "channelType", Value: channelType}}}
+
+			for i := 0; (i + 1) < len(info.Participants); i++ {
+
+				gr.graph.Edges.Edges = append(gr.graph.Edges.Edges,
+					gexf12.Edge{
+						ID:     fmt.Sprintf("%s_%s", info.ChannelId, info.Participants[i]),
+						Label:  string(info.ChannelId)[0:6],
+						Source: info.Participants[i].String(),
+						Target: info.Participants[i+1].String(),
+						Start: info.Time.Format(
+							"2006-01-02T15:04:05-0700"),
+						AttValues: &attValues,
+					},
+				)
+			}
+
 		}
+		if isCloseChannel {
+			for i := 0; i < len(gr.graph.Edges.Edges); i++ {
 
-		attValues := gexf12.AttValues{
-			AttValues: []gexf12.AttValue{
-				{For: "channelId", Value: info.ChannelId},
-				{For: "channelType", Value: channelType}}}
+				if strings.Contains(gr.graph.Edges.Edges[i].ID, info.ChannelId) {
 
-		for i := 0; (i + 1) < len(info.Participants); i++ {
-			gr.graph.Edges.Edges = append(gr.graph.Edges.Edges,
-				gexf12.Edge{
-					ID:     fmt.Sprintf("%s_%s", info.ChannelId, info.Participants[i]),
-					Label:  string(info.ChannelId)[0:6],
-					Source: info.Participants[i].String(),
-					Target: info.Participants[i+1].String(),
-					Start: info.Time.Format(
-						"2006-01-02T15:04:05-0700"),
-					AttValues: &attValues,
-				},
-			)
-		}
-
-	}
-	if isCloseChannel {
-		for i := 0; i < len(gr.graph.Edges.Edges); i++ {
-
-			if strings.Contains(gr.graph.Edges.Edges[i].ID, info.ChannelId) {
-
-				gr.graph.Edges.Edges[i].End = info.Time.Format(
-					"2006-01-02T15:04:05-0700")
+					gr.graph.Edges.Edges[i].End = info.Time.Format(
+						"2006-01-02T15:04:05-0700")
+				}
 			}
 		}
 	}
 }
-
