@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -95,8 +96,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
 
 	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
+	gr := utils.NewGraphRecorder(me.PeerInfo, peers, runConfig, client)
 
-	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
+	cm := utils.NewCompletionMonitor(&nClient, gr, runEnv.RecordMessage)
 	defer cm.Close()
 
 	// We wait until everyone has chosen an address.
@@ -105,7 +107,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
 	// Create ledger channels with all the hubs
-	ledgerIds := utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
+	ledgerIds := utils.CreateLedgerChannels(nClient, cm, gr, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
 
 	client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	toSleep := runConfig.GetSleepDuration()
@@ -139,6 +141,16 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 			r := nClient.CreateVirtualPaymentChannel(selectedHubs, randomPayee.Address, 0, outcome)
 
+			participants := []types.Address{me.Address}
+			participants = append(participants, selectedHubs...)
+			participants = append(participants, randomPayee.Address)
+			gr.ObjectiveStatusUpdated(utils.ObjectiveStatusInfo{
+				Id:           r.Id,
+				Time:         time.Now(),
+				Participants: participants,
+				ChannelId:    r.ChannelId.String(),
+				Status:       "Starting",
+			})
 			channelId = r.ChannelId
 			cm.WaitForObjectivesToComplete([]protocols.ObjectiveId{r.Id})
 
@@ -218,6 +230,17 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		}
 	}
 
+	if peer.IsGraphRecorder(seq, runConfig) {
+		data, err := xml.Marshal(gr.Graph())
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(fmt.Sprintf("./outputs/graph-%s.gexf", runEnv.TestRun), data, 0644)
+		if err != nil {
+			return err
+		}
+
+	}
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
 
 	return nil
