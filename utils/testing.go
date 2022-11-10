@@ -208,26 +208,28 @@ func CreateLedgerChannels(client nitro.Client, cm *CompletionMonitor, amount uin
 	return cIds
 }
 
+func GetVersion(path string) string {
+	info, _ := debug.ReadBuildInfo()
+	for _, dep := range info.Deps {
+		switch dep.Path {
+		case path:
+			return dep.Version
+
+		}
+	}
+	panic("could not find version for " + path)
+}
+
 // RecordRunInfo records a single point using the metrics API tagged with the various parameters and versions for the run.
 func RecordRunInfo(me peer.MyInfo, config config.RunConfig, metrics *runtime.MetricsApi) {
 	info, _ := debug.ReadBuildInfo()
 	testVersion := info.Main.Version
-	var nitroVersion string
-	var tgVersion string
-	var tgSdkVersion string
-	for _, dep := range info.Deps {
-		switch dep.Path {
-		case "github.com/statechannels/go-nitro":
-			nitroVersion = dep.Version
-		case "github.com/testground/testground":
-			tgVersion = dep.Version
-		case "github.com/testground/sdk-go":
-			tgSdkVersion = dep.Version
-		}
-	}
+	nitroVersion := GetVersion("github.com/statechannels/go-nitro")
+	tgVersion := GetVersion("github.com/testground/testground")
+	tgSDKVersion := GetVersion("github.com/testground/sdk-go")
 
 	runDetails := fmt.Sprintf("nitroVersion=%s,testVersion=%s,tgVersion=%s,tgSdkVersion=%s,me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
-		nitroVersion, testVersion, tgVersion, tgSdkVersion,
+		nitroVersion, testVersion, tgVersion, tgSDKVersion,
 		me.Address, me.Role, config.NumHubs, config.NumPayers,
 		config.NumPayees, config.NumPayeePayers,
 		config.PaymentTestDuration, config.ConcurrentPaymentJobs,
