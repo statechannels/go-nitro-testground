@@ -16,6 +16,33 @@ import (
 	Create2Deployer "github.com/statechannels/go-nitro/client/engine/chainservice/create2deployer"
 )
 
+// NewWallabyChainService creates a new chain service for the Wallaby testnet
+// It uses a hard-coded address for the nitro adjudicator
+func NewWallabyChainService(ctx context.Context, seq int64, logDestination io.Writer) chainservice.ChainService {
+
+	client, err := ethclient.Dial("https://wallaby.node.glif.io/rpc/v0")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	txSubmitter, err := bind.NewKeyedTransactorWithChainID(GetFundedPrivateKey(uint(seq)), big.NewInt(31415))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	naAddress := common.HexToAddress("0x918b176F9E01fF41D0a3ea484B4d0e3A671B3b32")
+	na, err := NitroAdjudicator.NewNitroAdjudicator(naAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, common.Address{}, txSubmitter, logDestination)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return cs
+}
+
 func NewChainService(ctx context.Context, seq int64, logDestination io.Writer) chainservice.ChainService {
 	client, err := ethclient.Dial("ws://hardhat:8545/")
 	if err != nil {

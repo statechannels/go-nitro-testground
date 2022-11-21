@@ -16,7 +16,6 @@ import (
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/client/engine"
-	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	p2pms "github.com/statechannels/go-nitro/client/engine/messageservice/p2p-message-service"
 	"github.com/statechannels/go-nitro/client/engine/store"
 	"github.com/statechannels/go-nitro/protocols"
@@ -55,13 +54,13 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 		panic(err)
 	}
 
-	naPk := crypto.FromECDSA(privateKey)
+	pk := crypto.FromECDSA(privateKey)
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	port := (START_PORT) + int(seq)
 	ipAddress := ip.String()
 
 	// Create the ms using the given key
-	ms := p2pms.NewMessageService(ipAddress, port, naPk)
+	ms := p2pms.NewMessageService(ipAddress, port, pk)
 	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
 
 	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
@@ -87,7 +86,7 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
-	cs := chainservice.NewFevmChainService(chain.GetFundedPrivateKey(uint(seq)))
+	cs := chain.NewWallabyChainService(ctx, seq, logDestination)
 	contractSetup := sync.State("contractSetup")
 	client.MustSignalEntry(ctx, contractSetup)
 	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
@@ -103,7 +102,7 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
 	// Create ledger channels with all the hubs
-	utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
+	ledgerIds := utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
 
 	client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	toSleep := runConfig.GetSleepDuration()
@@ -174,9 +173,38 @@ func CreateFEVMVirtualFundTest(runEnv *runtime.RunEnv, init *run.InitContext) er
 
 		// Run the job(s)
 		utils.RunJobs(createVirtualPaymentsJob, runConfig.PaymentTestDuration, int64(runConfig.ConcurrentPaymentJobs))
-
+		toSleep := runConfig.GetSleepDuration()
+		runEnv.RecordMessage("Waiting %s before closing ledger channels", toSleep)
+		time.Sleep(toSleep)
 	}
-	runEnv.RecordMessage("All done!")
+	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
+
+	// TODO: Closing as a hub seems to fail: https://github.com/statechannels/go-nitro-testground/issues/134
+	// For now we avoid closing as a hub
+	if len(ledgerIds) > 0 && me.Role != peer.Hub {
+		// Close all the ledger channels with the hub
+		oIds := []protocols.ObjectiveId{}
+		for _, ledgerId := range ledgerIds {
+
+			oId := nClient.CloseLedgerChannel(ledgerId)
+			oIds = append(oIds, oId)
+		}
+		cm.WaitForObjectivesToComplete(oIds)
+		runEnv.RecordMessage("All ledger channels closed")
+	}
+
+	// Record the mean time to first payment to nightly/ci metrics if applicable
+	// This allows us to track performance over time
+	// We restrict this to the payer to avoid inserting time_to_first_payment metrics for every client
+	if me.IsPayer() {
+		mean := runEnv.R().Timer(fmt.Sprintf("time_to_first_payment,me=%s", me.Address)).Mean()
+		if runEnv.BooleanParam("isNightly") {
+			runEnv.R().RecordPoint(fmt.Sprintf("nightly_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
+		}
+		if runEnv.BooleanParam("isCI") {
+			runEnv.R().RecordPoint(fmt.Sprintf("ci_mean_time_to_first_payment,me=%s", me.Address), float64(mean))
+		}
+	}
 	client.MustSignalAndWait(ctx, "done", runEnv.TestInstanceCount)
 
 	return nil
