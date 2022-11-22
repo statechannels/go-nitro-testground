@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.1.4"
+      "version": "9.1.6"
     },
     {
       "type": "datasource",
@@ -81,7 +81,7 @@
         "content": "<table style=\"width:100%\"> \n<thead>\n  <tr>\n    <th></th>\n    <th></th>\n  </tr>\n</thead>\n<tbody>\n  <tr>\n    <td>Run Id</td>\n    <td>${runId}</td>\n  </tr>\n    <tr>\n    <td>Nitro version</td>\n    <td>${nitroVersion}</td>\n  </tr>\n  <tr>\n    <td>Client Concurrency</td>\n    <td>${jobCount}</td>\n  </tr>\n  <tr>\n    <td>Payment test duration</td>\n    <td>${testDuration}</td>\n  </tr>\n  <tr>\n    <td>Number of payees</td>\n    <td>${payees}</td>\n  </tr>\n    <tr>\n    <td>Number of payers</td>\n    <td>${payers}</td>\n  </tr>\n     <tr>\n    <td>Number of payee-payers</td>\n    <td>${payeepayers}</td>\n  </tr>\n    <tr>\n    <td>Number of hubs</td>\n    <td>${hubs}</td>\n  </tr>\n      <tr>\n    <td>Latency (ms)</td>\n    <td>${latency}</td>\n  </tr>\n      <tr>\n    <td>Jitter (ms)</td>\n    <td>${jitter}</td>\n  </tr>\n</tbody>\n</table>",
         "mode": "html"
       },
-      "pluginVersion": "9.1.4",
+      "pluginVersion": "9.1.6",
       "title": "Run details",
       "type": "text"
     },
@@ -618,8 +618,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -885,7 +884,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {},
