@@ -6,6 +6,9 @@ runner = "local:exec"
 [builders."docker:go"]
 build_base_image = "golang:1.19-buster"
 enabled = true
+[builders."docker:go".dockerfile_extensions]
+post_runtime_copy = "COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt"
+pre_source_copy = "RUN update-ca-certificates --verbose"
 
 [builders."exec:go"]
 enabled = true
@@ -38,3 +41,4 @@ numOfPayeePayers = {type = "int", default = 0, desc = "The number of instances t
 numOfPayees = {type = "int", default = 1, desc = "The number of instances that should play the role of the payee"}
 numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
+useWallaby = {type = "bool", default = false, desc = "Whether to use the public wallaby FEVM test network"}

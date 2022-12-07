@@ -16,6 +16,7 @@ import (
 	"github.com/statechannels/go-nitro/channel/state/outcome"
 	nitro "github.com/statechannels/go-nitro/client"
 	"github.com/statechannels/go-nitro/client/engine"
+	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	p2pms "github.com/statechannels/go-nitro/client/engine/messageservice/p2p-message-service"
 	"github.com/statechannels/go-nitro/client/engine/store"
 	"github.com/statechannels/go-nitro/protocols"
@@ -88,11 +89,16 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// The outputs folder will be copied when results are collected.
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
-	// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
-	cs := chain.NewChainService(ctx, seq, logDestination)
-	contractSetup := sync.State("contractSetup")
-	client.MustSignalEntry(ctx, contractSetup)
-	client.MustBarrier(ctx, contractSetup, runEnv.TestInstanceCount)
+	var cs chainservice.ChainService
+	// If the wallaby flag is set we use the public wallaby node
+	if useWallaby := runEnv.BooleanParam("useWallaby"); useWallaby {
+		cs = chain.NewWallabyChainService(ctx, seq, logDestination)
+	} else {
+		// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
+		cs = chain.NewChainService(ctx, seq, logDestination)
+	}
+
+	client.MustSignalAndWait(ctx, sync.State("contractSetup"), runEnv.TestInstanceCount)
 
 	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
 
