@@ -33,7 +33,7 @@ func NewWallabyChainService(ctx context.Context, seq int64, logDestination io.Wr
 		log.Fatal(err)
 	}
 
-	naAddress := common.HexToAddress("0xab5c7Ff206Ed23180DbF9c6F3b98Ec984D0b0aB8")
+	naAddress := common.HexToAddress("0x31582BBC5e4304AD53336921482653B2FE5Ed17e")
 	na, err := NitroAdjudicator.NewNitroAdjudicator(naAddress, client)
 	if err != nil {
 		log.Fatal(err)
