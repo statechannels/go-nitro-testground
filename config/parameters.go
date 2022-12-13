@@ -13,4 +13,6 @@ const (
 	networkLatencyParam        param = "networkLatency"
 	concurrentPaymentJobsParam param = "concurrentPaymentJobs"
 	paymentTestDurationParam   param = "paymentTestDuration"
+	useWallabyParam            param = "useWallaby"
+	wallabyAdjudicatorAddress  param = "wallabyAdjudicatorAddress"
 )

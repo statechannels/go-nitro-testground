@@ -42,3 +42,4 @@ numOfPayees = {type = "int", default = 1, desc = "The number of instances that s
 numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
 useWallaby = {type = "bool", default = false, desc = "Whether to use the public wallaby FEVM test network"}
+wallabyAdjudicatorAddress = {type = "string", default = "0x31582BBC5e4304AD53336921482653B2FE5Ed17e", desc = "The adjudicator address to use when performing the test against the wallaby FEVM test network"}

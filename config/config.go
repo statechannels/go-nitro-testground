@@ -4,20 +4,24 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/statechannels/go-nitro/types"
 	"github.com/testground/sdk-go/runtime"
 )
 
 // RunConfig is the configuration for a test run.
 type RunConfig struct {
-	NumHubs               uint
-	NumPayees             uint
-	NumPayers             uint
-	NumPayeePayers        uint
-	NumIntermediaries     uint
-	ConcurrentPaymentJobs uint
-	NetworkJitter         time.Duration
-	NetworkLatency        time.Duration
-	PaymentTestDuration   time.Duration
+	NumHubs                   uint
+	NumPayees                 uint
+	NumPayers                 uint
+	NumPayeePayers            uint
+	NumIntermediaries         uint
+	ConcurrentPaymentJobs     uint
+	NetworkJitter             time.Duration
+	NetworkLatency            time.Duration
+	PaymentTestDuration       time.Duration
+	UseWallaby                bool
+	WallabyAdjudicatorAddress types.Address
 }
 
 // Validate validates the config values. It uses instanceCount to check that it has the correct amount of roles.
@@ -43,6 +47,8 @@ func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 	config.NetworkLatency = time.Duration(runEnv.IntParam(string(networkLatencyParam))) * time.Millisecond
 	config.PaymentTestDuration = time.Duration(runEnv.IntParam(string(paymentTestDurationParam))) * time.Second
 	config.ConcurrentPaymentJobs = uint(runEnv.IntParam(string(concurrentPaymentJobsParam)))
+	config.UseWallaby = (runEnv.BooleanParam(string(useWallabyParam)))
+	config.WallabyAdjudicatorAddress = common.HexToAddress(runEnv.StringParam(string(wallabyAdjudicatorAddress)))
 	err := config.Validate(uint(runEnv.TestInstanceCount))
 
 	return config, err
