@@ -90,9 +90,10 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	var cs chainservice.ChainService
+
 	// If the wallaby flag is set we use the public wallaby node
-	if useWallaby := runEnv.BooleanParam("useWallaby"); useWallaby {
-		cs = chain.NewWallabyChainService(ctx, seq, logDestination)
+	if runConfig.UseWallaby {
+		cs = chain.NewWallabyChainService(ctx, seq, runConfig.WallabyAdjudicatorAddress, logDestination)
 	} else {
 		// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
 		cs = chain.NewChainService(ctx, seq, logDestination)

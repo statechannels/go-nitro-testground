@@ -14,11 +14,11 @@ import (
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	NitroAdjudicator "github.com/statechannels/go-nitro/client/engine/chainservice/adjudicator"
 	Create2Deployer "github.com/statechannels/go-nitro/client/engine/chainservice/create2deployer"
+	"github.com/statechannels/go-nitro/types"
 )
 
 // NewWallabyChainService creates a new chain service for the Wallaby testnet
-// It uses a hard-coded address for the nitro adjudicator
-func NewWallabyChainService(ctx context.Context, seq int64, logDestination io.Writer) chainservice.ChainService {
+func NewWallabyChainService(ctx context.Context, seq int64, naAddress types.Address, logDestination io.Writer) chainservice.ChainService {
 
 	client, err := ethclient.Dial("https://wallaby.node.glif.io/rpc/v0")
 	if err != nil {
@@ -33,7 +33,6 @@ func NewWallabyChainService(ctx context.Context, seq int64, logDestination io.Wr
 		log.Fatal(err)
 	}
 
-	naAddress := common.HexToAddress("0xab5c7Ff206Ed23180DbF9c6F3b98Ec984D0b0aB8")
 	na, err := NitroAdjudicator.NewNitroAdjudicator(naAddress, client)
 	if err != nil {
 		log.Fatal(err)
