@@ -31,7 +31,7 @@ name = "virtual-payment"
 
 [testcases.params]
 concurrentPaymentJobs = {type = "int", desc = "The number of concurrent payment jobs a peer should attempt to maintain", default = 1}
-hyperspaceAdjudicatorAddress = {type = "string", default = "0x31582BBC5e4304AD53336921482653B2FE5Ed17e", desc = "The adjudicator address to use when performing the test against the hyperspace FEVM test network"}
+hyperspaceAdjudicatorAddress = {type = "string", default = "0x4fBeCDA4735eaF21C8ba5BD40Ab97dFa2Ed88E80", desc = "The adjudicator address to use when performing the test against the hyperspace FEVM test network"}
 isCI = {type = "bool", default = false, desc = "Whether this test is being run as from CI"}
 isNightly = {type = "bool", default = false, desc = "Whether this test is being run as part of the nightly test suite"}
 networkJitter = {type = "int", unit = "milliseconds", default = 0}
