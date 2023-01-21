@@ -38,8 +38,7 @@ func NewHyperspaceChainService(ctx context.Context, seq int64, naAddress types.A
 		log.Fatal(err)
 	}
 
-	wrappedClient := &FEVMWorkaroundChain{client, client, client}
-	cs, err := chainservice.NewEthChainService(wrappedClient, na, naAddress, common.Address{}, common.Address{}, txSubmitter, logDestination)
+	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, common.Address{}, txSubmitter, logDestination)
 	if err != nil {
 		log.Fatal(err)
 	}
