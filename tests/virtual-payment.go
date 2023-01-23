@@ -91,9 +91,9 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 
 	var cs chainservice.ChainService
 
-	// If the wallaby flag is set we use the public wallaby node
-	if runConfig.UseWallaby {
-		cs = chain.NewWallabyChainService(ctx, seq, runConfig.WallabyAdjudicatorAddress, logDestination)
+	// If the hyperspace flag is set we use the public hyperspace node
+	if runConfig.UseHyperspace {
+		cs = chain.NewHyperspaceChainService(ctx, seq, runConfig.HyperspaceAdjudicatorAddress, logDestination)
 	} else {
 		// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
 		cs = chain.NewChainService(ctx, seq, logDestination)

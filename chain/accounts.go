@@ -7,15 +7,15 @@ import (
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
-func GetWallabyFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
+func GetHyperspaceFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
 	// This is an arbitrary mnemonic
-	const WALLABY_MNEMONIC = "army forest resource shop tray cluster teach cause spice judge link oppose"
+	const HYPERSPACE_MNEMONIC = "army forest resource shop tray cluster teach cause spice judge link oppose"
 	// This is the amount of funded accounts we can expect
 	const NUM_FUNDED = 25
 	// This is the HD path the glif wallet uses
 	const HD_PATH = "m/44'/1'/0'/0"
 
-	return getPrivatKey(seq, WALLABY_MNEMONIC, HD_PATH, NUM_FUNDED)
+	return getPrivatKey(seq, HYPERSPACE_MNEMONIC, HD_PATH, NUM_FUNDED)
 }
 
 // GetFundedPrivateKey returns a funded private key for a given sequence number

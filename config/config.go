@@ -11,17 +11,17 @@ import (
 
 // RunConfig is the configuration for a test run.
 type RunConfig struct {
-	NumHubs                   uint
-	NumPayees                 uint
-	NumPayers                 uint
-	NumPayeePayers            uint
-	NumIntermediaries         uint
-	ConcurrentPaymentJobs     uint
-	NetworkJitter             time.Duration
-	NetworkLatency            time.Duration
-	PaymentTestDuration       time.Duration
-	UseWallaby                bool
-	WallabyAdjudicatorAddress types.Address
+	NumHubs                      uint
+	NumPayees                    uint
+	NumPayers                    uint
+	NumPayeePayers               uint
+	NumIntermediaries            uint
+	ConcurrentPaymentJobs        uint
+	NetworkJitter                time.Duration
+	NetworkLatency               time.Duration
+	PaymentTestDuration          time.Duration
+	UseHyperspace                bool
+	HyperspaceAdjudicatorAddress types.Address
 }
 
 // Validate validates the config values. It uses instanceCount to check that it has the correct amount of roles.
@@ -47,8 +47,8 @@ func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 	config.NetworkLatency = time.Duration(runEnv.IntParam(string(networkLatencyParam))) * time.Millisecond
 	config.PaymentTestDuration = time.Duration(runEnv.IntParam(string(paymentTestDurationParam))) * time.Second
 	config.ConcurrentPaymentJobs = uint(runEnv.IntParam(string(concurrentPaymentJobsParam)))
-	config.UseWallaby = (runEnv.BooleanParam(string(useWallabyParam)))
-	config.WallabyAdjudicatorAddress = common.HexToAddress(runEnv.StringParam(string(wallabyAdjudicatorAddress)))
+	config.UseHyperspace = (runEnv.BooleanParam(string(useHyperspace)))
+	config.HyperspaceAdjudicatorAddress = common.HexToAddress(runEnv.StringParam(string(hyperspaceAdjudicatorAddress)))
 	err := config.Validate(uint(runEnv.TestInstanceCount))
 
 	return config, err
