@@ -81,7 +81,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	ms.AddPeers(peer.GetMessageServicePeers(peers))
 	client.MustSignalAndWait(ctx, "peersAdded", runEnv.TestInstanceCount)
 
-	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
+	store := store.NewPersistStore(crypto.FromECDSA(&me.PrivateKey), "../data")
 
 	// We skip the 0x prefix by slicing from index 2
 	shortAddress := me.Address.String()[2:8]
