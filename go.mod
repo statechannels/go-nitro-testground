@@ -5,7 +5,8 @@ go 1.19
 require (
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
 	github.com/multiformats/go-multiaddr v0.8.0
-	github.com/statechannels/go-nitro v0.0.0-20230309205716-a65554ad4dd0
+	github.com/statechannels/go-nitro v0.0.0-20230310171721-486f70744942
+	github.com/tidwall/buntdb v1.2.10
 )
 
 require (
@@ -101,7 +102,6 @@ require (
 	github.com/testground/sync-service v0.1.0 // indirect
 	github.com/testground/testground v0.5.3 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
-	github.com/tidwall/buntdb v1.2.10 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/grect v0.1.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

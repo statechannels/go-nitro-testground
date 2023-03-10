@@ -22,6 +22,7 @@ type RunConfig struct {
 	PaymentTestDuration          time.Duration
 	UseHyperspace                bool
 	HyperspaceAdjudicatorAddress types.Address
+	StoreSyncFrequency           uint
 }
 
 // Validate validates the config values. It uses instanceCount to check that it has the correct amount of roles.
@@ -49,6 +50,7 @@ func GetRunConfig(runEnv *runtime.RunEnv) (RunConfig, error) {
 	config.ConcurrentPaymentJobs = uint(runEnv.IntParam(string(concurrentPaymentJobsParam)))
 	config.UseHyperspace = (runEnv.BooleanParam(string(useHyperspace)))
 	config.HyperspaceAdjudicatorAddress = common.HexToAddress(runEnv.StringParam(string(hyperspaceAdjudicatorAddress)))
+	config.StoreSyncFrequency = uint(runEnv.IntParam(string(storeSyncFrequency)))
 	err := config.Validate(uint(runEnv.TestInstanceCount))
 
 	return config, err
