@@ -1,10 +1,10 @@
 package utils
 
 import (
+	"sync"
 	"time"
 
 	nitroclient "github.com/statechannels/go-nitro/client"
-	"github.com/statechannels/go-nitro/client/engine/store/safesync"
 	"github.com/statechannels/go-nitro/protocols"
 )
 
@@ -12,7 +12,7 @@ const SLEEP_TIME = time.Microsecond * 500
 
 // CompletionMonitor is a struct used to watch for objective completion
 type CompletionMonitor struct {
-	completed *safesync.Map[bool]
+	completed *sync.Map
 	client    *nitroclient.Client
 	quit      chan struct{}
 	log       func(msg string, a ...interface{})
@@ -21,7 +21,7 @@ type CompletionMonitor struct {
 // NewCompletionMonitor creates a new completion monitor
 func NewCompletionMonitor(client *nitroclient.Client, logFunc func(msg string, a ...interface{})) *CompletionMonitor {
 
-	completed := safesync.Map[bool]{}
+	completed := sync.Map{}
 
 	c := &CompletionMonitor{
 		completed: &completed,
@@ -38,7 +38,8 @@ func (c *CompletionMonitor) done(ids []protocols.ObjectiveId) bool {
 
 	for _, id := range ids {
 		isComplete, _ := c.completed.Load(string(id))
-		if !isComplete {
+
+		if !isComplete.(bool) {
 			return false
 		}
 	}
