@@ -37,9 +37,9 @@ func NewCompletionMonitor(client *nitroclient.Client, logFunc func(msg string, a
 func (c *CompletionMonitor) done(ids []protocols.ObjectiveId) bool {
 
 	for _, id := range ids {
-		isComplete, _ := c.completed.Load(string(id))
+		isComplete, ok := c.completed.Load(string(id))
 
-		if !isComplete.(bool) {
+		if !ok || !isComplete.(bool) {
 			return false
 		}
 	}
