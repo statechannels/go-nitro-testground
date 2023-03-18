@@ -24,6 +24,7 @@ import (
 	"github.com/testground/sdk-go/run"
 	"github.com/testground/sdk-go/runtime"
 	"github.com/testground/sdk-go/sync"
+	"github.com/tidwall/buntdb"
 )
 
 // START_PORT is the start of the port range we'll use to issue unique ports.
@@ -81,7 +82,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	ms.AddPeers(peer.GetMessageServicePeers(peers))
 	client.MustSignalAndWait(ctx, "peersAdded", runEnv.TestInstanceCount)
 
-	store := store.NewMemStore(crypto.FromECDSA(&me.PrivateKey))
+	store := store.NewPersistStore(crypto.FromECDSA(&me.PrivateKey), "../data", buntdb.Config{SyncPolicy: buntdb.SyncPolicy(runConfig.StoreSyncFrequency)})
 
 	// We skip the 0x prefix by slicing from index 2
 	shortAddress := me.Address.String()[2:8]

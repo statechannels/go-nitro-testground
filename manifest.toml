@@ -42,4 +42,5 @@ numOfPayeePayers = {type = "int", default = 0, desc = "The number of instances t
 numOfPayees = {type = "int", default = 1, desc = "The number of instances that should play the role of the payee"}
 numOfPayers = {type = "int", default = 1, desc = "The number of instances that should play the role of the payer"}
 paymentTestDuration = {type = "int", default = 10, unit = "seconds"}
+storeSyncFrequency = {type = "int", default = 1, max = 2, min = 0, desc = "How often the store persists data to disk. 0 is never, 1 is every second, 2 is immediately"}
 useHyperspace = {type = "bool", default = false, desc = "Whether to use the public hyperspace FEVM test network"}

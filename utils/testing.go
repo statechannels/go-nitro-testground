@@ -229,12 +229,13 @@ func RecordRunInfo(me peer.MyInfo, config config.RunConfig, metrics *runtime.Met
 	tgVersion := GetVersion("github.com/testground/testground")
 	tgSDKVersion := GetVersion("github.com/testground/sdk-go")
 
-	runDetails := fmt.Sprintf("nitroVersion=%s,testVersion=%s,tgVersion=%s,tgSdkVersion=%s,me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d",
+	runDetails := fmt.Sprintf("nitroVersion=%s,testVersion=%s,tgVersion=%s,tgSdkVersion=%s,me=%s,role=%v,hubs=%d,payers=%d,payees=%d,payeePayers=%d,duration=%s,concurrentJobs=%d,jitter=%d,latency=%d,useHyperspace=%v,hyperspaceAdjudicatorAddress=%s,storeSyncFrequency=%d",
 		nitroVersion, testVersion, tgVersion, tgSDKVersion,
 		me.Address, me.Role, config.NumHubs, config.NumPayers,
 		config.NumPayees, config.NumPayeePayers,
 		config.PaymentTestDuration, config.ConcurrentPaymentJobs,
-		config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds())
+		config.NetworkJitter.Milliseconds(), config.NetworkLatency.Milliseconds(),
+		config.UseHyperspace, config.HyperspaceAdjudicatorAddress, config.StoreSyncFrequency)
 
 	metrics.RecordPoint("run_info,"+runDetails, 1)
 
