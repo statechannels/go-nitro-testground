@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
 	github.com/multiformats/go-multiaddr v0.8.0
-	github.com/statechannels/go-nitro v0.0.0-20230310171721-486f70744942
+	github.com/statechannels/go-nitro v0.0.0-20230320200850-7a4f248bea72
 	github.com/tidwall/buntdb v1.2.10
 )
 
