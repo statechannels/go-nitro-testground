@@ -65,7 +65,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	ipAddress := ip.String()
 
 	// Create the ms using the given key
-	ms := p2pms.NewMessageService(ipAddress, port, pk)
+	ms := p2pms.NewMessageService(ipAddress, port, address, utils.GenerateMessageKey(pk))
 	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
 
 	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
