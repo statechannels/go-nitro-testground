@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
 	github.com/multiformats/go-multiaddr v0.8.0
-	github.com/statechannels/go-nitro v0.0.0-20230329050337-feb4d5c696e9
+	github.com/statechannels/go-nitro v0.0.0-20230331014722-10685d90c27c
 	github.com/tidwall/buntdb v1.2.10
 )
 
@@ -142,7 +142,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/ethereum/go-ethereum v1.11.4
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/libp2p/go-libp2p v0.26.2
+	github.com/libp2p/go-libp2p v0.26.2 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
