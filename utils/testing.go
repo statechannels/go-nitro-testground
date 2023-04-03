@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	p2pcrypto "github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/statechannels/go-nitro-testground/config"
 	"github.com/statechannels/go-nitro-testground/peer"
 	"github.com/statechannels/go-nitro/channel/state/outcome"
@@ -241,23 +239,4 @@ func RecordRunInfo(me peer.MyInfo, config config.RunConfig, metrics *runtime.Met
 
 	metrics.RecordPoint("run_info,"+runDetails, 1)
 
-}
-
-// generateMessageKey generates a ECDSA private key deterministically using the given pk bytes.
-func GenerateMessageKey(pk []byte) p2pcrypto.PrivKey {
-
-	// We use he given
-	totalSize := 256
-	large := make([]byte, totalSize)
-	copy(large, pk)
-
-	messageKey, _, err := p2pcrypto.GenerateECDSAKeyPair(bytes.NewReader(large))
-	if err != nil {
-		panic(err)
-	}
-
-	if err != nil {
-		panic(err)
-	}
-	return messageKey
 }
