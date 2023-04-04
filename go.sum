@@ -872,8 +872,8 @@ github.com/spf13/pflag v1.0.1-0.20171106142849-4c012f6dcd95/go.mod h1:DYY7MBk1bd
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DMA2s=
-github.com/statechannels/go-nitro v0.0.0-20230331014722-10685d90c27c h1:H7+mhVBzV6KJF9uQsdRXPn40XHH8B3dpeNAEaYz82pA=
-github.com/statechannels/go-nitro v0.0.0-20230331014722-10685d90c27c/go.mod h1:8QRNph0V5MHK74d1rijokIehJOGrnj0GGXY6GzamN+A=
+github.com/statechannels/go-nitro v0.0.0-20230403194602-4955ff052802 h1:Hd0HQh3kVQ7YLlBZhnq7j6Zja986ugddJV7ayhuYKrE=
+github.com/statechannels/go-nitro v0.0.0-20230403194602-4955ff052802/go.mod h1:8QRNph0V5MHK74d1rijokIehJOGrnj0GGXY6GzamN+A=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
 github.com/status-im/keycard-go v0.2.0 h1:QDLFswOQu1r5jsycloeQh3bVU8n/NatHHaZobtDnDzA=
 github.com/status-im/keycard-go v0.2.0/go.mod h1:wlp8ZLbsmrF6g6WjugPAx+IzoLrkdf9+mHxBEeo3Hbg=

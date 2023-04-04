@@ -113,7 +113,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustSignalAndWait(ctx, "message service connected", runEnv.TestInstanceCount)
 
 	// Create ledger channels with all the hubs
-	ledgerIds := utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
+	utils.CreateLedgerChannels(nClient, cm, utils.FINNEY_IN_WEI, me.PeerInfo, peers)
 
 	client.MustSignalAndWait(ctx, sync.State("ledgerDone"), runEnv.TestInstanceCount)
 	toSleep := runConfig.GetSleepDuration()
@@ -189,19 +189,22 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	}
 	client.MustSignalAndWait(ctx, "paymentsDone", runEnv.TestInstanceCount)
 
-	// TODO: Closing as a hub seems to fail: https://github.com/statechannels/go-nitro-testground/issues/134
-	// For now we avoid closing as a hub
-	if len(ledgerIds) > 0 && me.Role != peer.Hub {
-		// Close all the ledger channels with the hub
-		oIds := []protocols.ObjectiveId{}
-		for _, ledgerId := range ledgerIds {
+	// TODO: Closing seems to flicker so were disabling it for now
+	// see https://github.com/statechannels/go-nitro/issues/1163
+	runEnv.RecordMessage("TODO: Skipping closing ledger channels due to flickering")
+	// // TODO: Closing as a hub seems to fail: https://github.com/statechannels/go-nitro-testground/issues/134
+	// // For now we avoid closing as a hub
+	// if len(ledgerIds) > 0 && me.Role != peer.Hub {
+	// 	// Close all the ledger channels with the hub
+	// 	oIds := []protocols.ObjectiveId{}
+	// 	for _, ledgerId := range ledgerIds {
 
-			oId := nClient.CloseLedgerChannel(ledgerId)
-			oIds = append(oIds, oId)
-		}
-		cm.WaitForObjectivesToComplete(oIds)
-		runEnv.RecordMessage("All ledger channels closed")
-	}
+	// 		oId := nClient.CloseLedgerChannel(ledgerId)
+	// 		oIds = append(oIds, oId)
+	// 	}
+	// 	cm.WaitForObjectivesToComplete(oIds)
+	// 	runEnv.RecordMessage("All ledger channels closed")
+	// }
 
 	if me.IsPayer() {
 		// Record the mean time to first payment to nightly/ci metrics if applicable
