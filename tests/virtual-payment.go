@@ -63,9 +63,14 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	port := (START_PORT) + int(seq)
 	ipAddress := ip.String()
+	// We skip the 0x prefix by slicing from index 2
+	shortAddress := address.String()[2:8]
+	logPath := fmt.Sprintf("./outputs/nitro-client-%s-role-%d.log", shortAddress, role)
+	// The outputs folder will be copied when results are collected.
+	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	// Create the ms using the given key
-	ms := p2pms.NewMessageService(ipAddress, port, address, pk)
+	ms := p2pms.NewMessageService(ipAddress, port, address, pk, logDestination)
 	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
 
 	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
@@ -83,12 +88,6 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustSignalAndWait(ctx, "peersAdded", runEnv.TestInstanceCount)
 
 	store := store.NewDurableStore(crypto.FromECDSA(&me.PrivateKey), "../data", buntdb.Config{SyncPolicy: buntdb.SyncPolicy(runConfig.StoreSyncFrequency)})
-
-	// We skip the 0x prefix by slicing from index 2
-	shortAddress := me.Address.String()[2:8]
-	logPath := fmt.Sprintf("./outputs/nitro-client-%s-role-%d.log", shortAddress, me.Role)
-	// The outputs folder will be copied when results are collected.
-	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	var cs chainservice.ChainService
 
