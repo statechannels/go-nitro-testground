@@ -96,7 +96,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 		cs = chain.NewHyperspaceChainService(ctx, seq, runConfig.HyperspaceAdjudicatorAddress, logDestination)
 	} else {
 		// All instances wait until the NitroAdjudicator has been deployed (seq = 1 instance is responsible)
-		cs = chain.NewChainService(ctx, seq, logDestination)
+		cs = chain.NewChainService(ctx, seq, logDestination, client, runEnv.TestInstanceCount)
 	}
 
 	client.MustSignalAndWait(ctx, sync.State("contractSetup"), runEnv.TestInstanceCount)

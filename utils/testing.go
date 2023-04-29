@@ -137,6 +137,20 @@ func SharePeerInfo(me peer.PeerInfo, ctx context.Context, client sync.Client, in
 	return peers
 }
 
+func SendAdjudicatorAddress(ctx context.Context, client sync.Client, adjudicatorAddress types.Address) {
+	naTopic := sync.NewTopic("na-address", types.Address{})
+	_ = client.MustPublish(ctx, naTopic, adjudicatorAddress)
+}
+
+func WaitForAdjudicatorAddress(ctx context.Context, client sync.Client, instances int) types.Address {
+	naTopic := sync.NewTopic("na-address", types.Address{})
+	naChan := make(chan types.Address)
+
+	client.MustSubscribe(ctx, naTopic, naChan)
+	return <-naChan
+
+}
+
 // SelectRandom selects a random element from a slice.
 func SelectRandom[U ~[]T, T any](collection U) T {
 	randomIndex := rand.Intn(len(collection))
