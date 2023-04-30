@@ -66,7 +66,10 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, s
 	var naAddress types.Address
 	// One testground instance attempts to deploy NitroAdjudicator
 	if seq == 1 {
-		naAddress, _ = chainutils.DeployAdjudicator(ctx, client, txSubmitter)
+		naAddress, err = chainutils.DeployAdjudicator(ctx, client, txSubmitter)
+		if err != nil {
+			log.Fatal(err)
+		}
 		utils.SendAdjudicatorAddress(context.Background(), syncClient, naAddress)
 	} else {
 		naAddress = utils.WaitForAdjudicatorAddress(context.Background(), syncClient, instances)
@@ -74,7 +77,7 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, s
 
 	na, err := NitroAdjudicator.NewNitroAdjudicator(naAddress, client)
 	if err != nil {
-		log.Fatal(err)
+	log.Fatal(err)
 	}
 
 	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, common.Address{}, txSubmitter, logDestination)
