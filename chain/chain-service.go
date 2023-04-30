@@ -46,7 +46,7 @@ func NewHyperspaceChainService(ctx context.Context, seq int64, naAddress types.A
 }
 
 func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, syncClient sync.Client, instances int) chainservice.ChainService {
-	client, err := ethclient.Dial("ws://hardhat:8545/")
+	client, err := ethclient.Dial("ws://chain:8545/")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, s
 
 	na, err := NitroAdjudicator.NewNitroAdjudicator(naAddress, client)
 	if err != nil {
-	log.Fatal(err)
+		log.Fatal(err)
 	}
 
 	cs, err := chainservice.NewEthChainService(client, na, naAddress, common.Address{}, common.Address{}, txSubmitter, logDestination)
