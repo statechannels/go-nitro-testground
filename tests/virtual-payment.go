@@ -102,7 +102,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	client.MustSignalAndWait(ctx, sync.State("contractSetup"), runEnv.TestInstanceCount)
 
 	nClient := nitro.New(ms, cs, store, logDestination, &engine.PermissivePolicy{}, runEnv.R())
-
+	defer nClient.Close()
 	cm := utils.NewCompletionMonitor(&nClient, runEnv.RecordMessage)
 	defer cm.Close()
 
