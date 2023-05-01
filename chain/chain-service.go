@@ -2,19 +2,19 @@ package chain
 
 import (
 	"context"
-	"encoding/hex"
 	"io"
 	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/statechannels/go-nitro-testground/utils"
 	"github.com/statechannels/go-nitro/client/engine/chainservice"
 	NitroAdjudicator "github.com/statechannels/go-nitro/client/engine/chainservice/adjudicator"
-	Create2Deployer "github.com/statechannels/go-nitro/client/engine/chainservice/create2deployer"
+	chainutils "github.com/statechannels/go-nitro/client/engine/chainservice/utils"
 	"github.com/statechannels/go-nitro/types"
+	"github.com/testground/sdk-go/sync"
 )
 
 // NewHyperspaceChainService creates a new chain service for the Hyperspace testnet
@@ -45,8 +45,8 @@ func NewHyperspaceChainService(ctx context.Context, seq int64, naAddress types.A
 	return cs
 }
 
-func NewChainService(ctx context.Context, seq int64, logDestination io.Writer) chainservice.ChainService {
-	client, err := ethclient.Dial("ws://hardhat:8545/")
+func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, syncClient sync.Client, instances int) chainservice.ChainService {
+	client, err := ethclient.Dial("ws://chain:8545/")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,35 +63,16 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer) c
 	}
 	txSubmitter.GasPrice = gasPrice
 
-	deployer, err := Create2Deployer.NewCreate2Deployer(common.HexToAddress("0x5fbdb2315678afecb367f032d93f642f64180aa3"), client)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	hexBytecode, err := hex.DecodeString(NitroAdjudicator.NitroAdjudicatorMetaData.Bin[2:])
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	naAddress, err := deployer.ComputeAddress(&bind.CallOpts{}, [32]byte{}, crypto.Keccak256Hash(hexBytecode))
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	var naAddress types.Address
 	// One testground instance attempts to deploy NitroAdjudicator
 	if seq == 1 {
-		bytecode, err := client.CodeAt(ctx, naAddress, nil) // nil is latest block
+		naAddress, err = chainutils.DeployAdjudicator(ctx, client, txSubmitter)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		// Has NitroAdjudicator been deployed? If not, deploy it.
-		if len(bytecode) == 0 {
-			_, err = deployer.Deploy(txSubmitter, big.NewInt(0), [32]byte{}, hexBytecode)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+		utils.SendAdjudicatorAddress(context.Background(), syncClient, naAddress)
+	} else {
+		naAddress = utils.WaitForAdjudicatorAddress(context.Background(), syncClient, instances)
 	}
 
 	na, err := NitroAdjudicator.NewNitroAdjudicator(naAddress, client)
