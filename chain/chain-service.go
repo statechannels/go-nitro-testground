@@ -19,7 +19,6 @@ import (
 
 // NewHyperspaceChainService creates a new chain service for the Hyperspace testnet
 func NewHyperspaceChainService(ctx context.Context, seq int64, naAddress types.Address, logDestination io.Writer) chainservice.ChainService {
-
 	client, err := ethclient.Dial("https://api.hyperspace.node.glif.io/rpc/v0")
 	if err != nil {
 		log.Fatal(err)
@@ -66,7 +65,8 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, s
 	var naAddress types.Address
 	// One testground instance attempts to deploy NitroAdjudicator
 	if seq == 1 {
-		naAddress, err = chainutils.DeployAdjudicator(ctx, client, txSubmitter)
+
+		naAddress, err = deployAdjudicator(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -85,4 +85,18 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, s
 		log.Fatal(err)
 	}
 	return cs
+}
+
+// deployAdjudicator deploys th  NitroAdjudicator contract.
+func deployAdjudicator(ctx context.Context) (common.Address, error) {
+	const FUNDED_TEST_PK = "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+	client, txSubmitter, err := chainutils.ConnectToChain(context.Background(), "ws://127.0.0.1:8545", 1337, common.Hex2Bytes(FUNDED_TEST_PK))
+	if err != nil {
+		return types.Address{}, err
+	}
+	naAddress, _, _, err := NitroAdjudicator.DeployNitroAdjudicator(txSubmitter, client)
+	if err != nil {
+		return types.Address{}, err
+	}
+	return naAddress, nil
 }
