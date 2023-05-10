@@ -90,7 +90,7 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, s
 // deployAdjudicator deploys th  NitroAdjudicator contract.
 func deployAdjudicator(ctx context.Context) (common.Address, error) {
 	const FUNDED_TEST_PK = "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
-	client, txSubmitter, err := chainutils.ConnectToChain(context.Background(), "ws://127.0.0.1:8545", 1337, common.Hex2Bytes(FUNDED_TEST_PK))
+	client, txSubmitter, err := chainutils.ConnectToChain(context.Background(), "ws://chain:8545", 1337, common.Hex2Bytes(FUNDED_TEST_PK))
 	if err != nil {
 		return types.Address{}, err
 	}
