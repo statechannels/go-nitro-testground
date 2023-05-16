@@ -2,11 +2,10 @@ package peer
 
 import (
 	"crypto/ecdsa"
-	"fmt"
 
-	"github.com/multiformats/go-multiaddr"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/statechannels/go-nitro-testground/config"
-	p2pms "github.com/statechannels/go-nitro/client/engine/messageservice/p2p-message-service"
+	"github.com/statechannels/go-nitro/types"
 )
 
 // START_PORT is the start of the port range we'll use to issue unique ports.
@@ -24,9 +23,10 @@ const (
 // PeerInfo represents a peer testground instance.
 // It contains information about the peers address and role that instance is playing.
 type PeerInfo struct {
-	p2pms.PeerInfo
-	Role Role
-	Seq  int64
+	Id      peer.ID
+	Address types.Address
+	Role    Role
+	Seq     int64
 }
 
 // IsPayer returns true if the peer's role is a Payer or PayeePayer
@@ -37,17 +37,6 @@ func (p PeerInfo) IsPayer() bool {
 // IsPayee returns true if the peer's role is a Payee or PayeePayer
 func (p PeerInfo) IsPayee() bool {
 	return p.Role == Payee || p.Role == PayerPayee
-}
-
-// MultiAddress returns the multiaddress of the peer based on their port and Id
-func (p PeerInfo) MultiAddress() multiaddr.Multiaddr {
-
-	a, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d/p2p/%s", p.IpAddress, p.Port, p.Id))
-	if err != nil {
-		panic(err)
-	}
-
-	return a
 }
 
 // MyInfo contains an instance's private information.
@@ -86,13 +75,4 @@ func FilterByRole(peers []PeerInfo, role Role) []PeerInfo {
 		}
 	}
 	return filtered
-}
-
-// GetMessageServicePeers takes in our PeerInfos and returns a slice of p2pms.PeerInfos
-func GetMessageServicePeers(peers []PeerInfo) []p2pms.PeerInfo {
-	peerInfos := []p2pms.PeerInfo{}
-	for _, p := range peers {
-		peerInfos = append(peerInfos, p.PeerInfo)
-	}
-	return peerInfos
 }
