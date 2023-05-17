@@ -33,7 +33,7 @@ additional_hosts = ["chain"]
 
 Next, start `hardhat-docker` (or your preferred alternative),
 
-# NOTE: Double check no other programs are using that port 8545
+NOTE: Double check no other programs are using that port 8545
 ```sh
 
 docker run -it -d -p 8545:8545 --name chain hardhat
