@@ -1,13 +1,12 @@
 package chain
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
-func GetHyperspaceFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
+func GetHyperspaceFundedPrivateKey(seq uint) string {
 	// This is an arbitrary mnemonic
 	const HYPERSPACE_MNEMONIC = "army forest resource shop tray cluster teach cause spice judge link oppose"
 	// This is the amount of funded accounts we can expect
@@ -15,12 +14,12 @@ func GetHyperspaceFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
 	// This is the HD path the glif wallet uses
 	const HD_PATH = "m/44'/1'/0'/0"
 
-	return getPrivatKey(seq, HYPERSPACE_MNEMONIC, HD_PATH, NUM_FUNDED)
+	return getPrivateKey(seq, HYPERSPACE_MNEMONIC, HD_PATH, NUM_FUNDED)
 }
 
 // GetFundedPrivateKey returns a funded private key for a given sequence number
 // It will always return the same private key for a given sequence number
-func GetHardhatFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
+func GetHardhatFundedPrivateKey(seq uint) string {
 	// See https://hardhat.org/hardhat-network/docs/reference#accounts for defaults
 	// This is the default mnemonic used by hardhat
 	const HARDHAT_MNEMONIC = "test test test test test test test test test test test junk"
@@ -29,10 +28,10 @@ func GetHardhatFundedPrivateKey(seq uint) *ecdsa.PrivateKey {
 	const NUM_FUNDED = 1000
 	// This is the default hd wallet path used by hardhat
 	const HD_PATH = "m/44'/60'/0'/0"
-	return getPrivatKey(seq, HARDHAT_MNEMONIC, HD_PATH, NUM_FUNDED)
+	return getPrivateKey(seq, HARDHAT_MNEMONIC, HD_PATH, NUM_FUNDED)
 }
 
-func getPrivatKey(seq uint, mnemonic string, path string, numFunded uint) *ecdsa.PrivateKey {
+func getPrivateKey(seq uint, mnemonic string, path string, numFunded uint) string {
 
 	ourIndex := seq - 1 // seq starts at 1
 
@@ -51,7 +50,8 @@ func getPrivatKey(seq uint, mnemonic string, path string, numFunded uint) *ecdsa
 	if err != nil {
 		panic(err)
 	}
-	pk, err := wallet.PrivateKey(a)
+
+	pk, err := wallet.PrivateKeyHex(a)
 	if err != nil {
 		panic(err)
 	}
