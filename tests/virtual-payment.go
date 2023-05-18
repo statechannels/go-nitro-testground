@@ -70,10 +70,10 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	// Create the ms using the given key
-	ms := p2pms.NewMessageService(ipAddress, port, address, pk, logDestination)
+	ms := p2pms.NewMessageService(ipAddress, port, address, pk, false, logDestination)
 	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
 
-	mePeerInfo := peer.PeerInfo{Address: address, Id: ms.Id(), Role: role, Seq: seq}
+	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
 	me := peer.MyInfo{PeerInfo: mePeerInfo, PrivateKey: *privateKey}
 
 	runEnv.RecordMessage("I am address:%s role:%d seq:%d", me.Address, me.Role, me.Seq)
@@ -83,11 +83,8 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	// Broadcasts our info and get peer info from all other instances.
 	peers := utils.SharePeerInfo(me.PeerInfo, ctx, client, runEnv.TestInstanceCount)
 
-	// Wait until we receive all the peer info via the message service
-	for i := 0; i < len(peers)-1; i++ {
-		<-ms.PeerInfoReceived()
-	}
-
+	// Register our peers with the message service
+	ms.AddPeers(peer.GetMessageServicePeers(peers))
 	client.MustSignalAndWait(ctx, "peersAdded", runEnv.TestInstanceCount)
 
 	store := store.NewDurableStore(crypto.FromECDSA(&me.PrivateKey), "../data", buntdb.Config{SyncPolicy: buntdb.SyncPolicy(runConfig.StoreSyncFrequency)})

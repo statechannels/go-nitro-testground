@@ -49,7 +49,7 @@ func NewChainService(ctx context.Context, seq int64, logDestination io.Writer, s
 	}
 	cs, err := chainservice.NewEthChainService(
 		"ws://chain:8545/",
-		GetHyperspaceFundedPrivateKey(uint(seq)),
+		GetHardhatFundedPrivateKey(uint(seq)),
 		naAddress,
 		common.Address{},
 		common.Address{},
