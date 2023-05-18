@@ -70,7 +70,7 @@ func CreateVirtualPaymentTest(runEnv *runtime.RunEnv, init *run.InitContext) err
 	logDestination, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY, 0666)
 
 	// Create the ms using the given key
-	ms := p2pms.NewMessageService(ipAddress, port, address, pk, logDestination)
+	ms := p2pms.NewMessageService(ipAddress, port, address, pk, false, logDestination)
 	client.MustSignalAndWait(ctx, "msStarted", runEnv.TestInstanceCount)
 
 	mePeerInfo := peer.PeerInfo{PeerInfo: p2pms.PeerInfo{Address: address, IpAddress: ipAddress, Port: port, Id: ms.Id()}, Role: role, Seq: seq}
